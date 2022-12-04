@@ -9,6 +9,6 @@ arquivo = open('Dados20220921-134049.csv','r')
 
 teste=arquivo.read()
 
-df = pd.DataFrame(np.random.randn(100,2)/[-49.287566]+[-49.287566,-25.436129],columns=['lat','lon'])
+df = pd.DataFrame(np.random.randn(100,2)/[-49.287566]+[-25.436129,-49.287566],columns=['lat','lon'])
 st.write(df)
 st.map(df)
