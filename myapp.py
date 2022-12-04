@@ -13,4 +13,4 @@ df = pd.DataFrame(np.random.randn(100,2)+[-25.436129,-49.287566],columns=['lat',
 st.write(df)
 cord=[-25.436129,-49.287566]
 st.write(cord)
-st.map(df)
+st.map(cord)
