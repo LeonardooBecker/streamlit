@@ -15,7 +15,7 @@ my_map = folium.Map(location=[-25.436085,-49.269290],zoom_start=13)
 if(info=='Primeira'):
     arquivo = open('Dados20220921-190631.csv', 'r')
 if(info=='Segunda'):
-    arquivo = open('Dados20220921-134049.csv', 'r')
+    arquivo = open('Fulltable_20220429_EFGHSTUV.csv', 'r')
 total = arquivo.readlines()
 
 init = total[1].split(",")
