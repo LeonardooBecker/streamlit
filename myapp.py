@@ -20,6 +20,16 @@ if(info=='Segunda'):
 
 total = arquivo.readlines()
 
+linhaAnterior='DRIVER'
+condutores = []
+for linhaAtual in total:
+    linha = re.split('[,;]',linhaAtual)
+    if(linha[0]!=linhaAnterior):
+        condutores.append(linha[0])
+    linhaAnterior=linha[0]
+
+condut=st.sidebar.selectbox('condutor',condutores)
+        
 
 ignoraPrimeira = 0
 
@@ -28,18 +38,20 @@ for linhaAtual in total:
         ignoraPrimeira += 1
     else:
         linha = re.split('[,;]',linhaAtual)
-        data=linha[5]
-        data = data.split('/')
-        if(len(data)>1 and float(data[2])==2021):
-            longitude = linha[1] + '.' + linha[2]
-            longitude = float(longitude)
-            latitude = linha[3] + '.'  + linha[4]
-            latitude = float(latitude)
-        else:
-            longitude=float(linha[1])
-            latitude=float(linha[2])
-            
-        folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
+        if(linha[0]==condut):
+            data=linha[5]
+            data = data.split('/')
+            if(len(data)>1 and float(data[2])==2021):
+                longitude = linha[1] + '.' + linha[2]
+                longitude = float(longitude)
+                latitude = linha[3] + '.'  + linha[4]
+                latitude = float(latitude)
+            else:
+                longitude=float(linha[1])
+                latitude=float(linha[2])
+
+            #folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
+            folium.Circle([latitude,longitude],5,color='black').add_to(my_map)
 
 
 folium_static(my_map,width=800,height=475)
