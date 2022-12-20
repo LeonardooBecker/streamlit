@@ -122,6 +122,7 @@ bairro = ["NULL"]
 cidade = ["NULL"]
 viagem = ["NULL"]
 
+st.session_state[0]=''
 
 # Cria vetores contendo as informaçoes da sidebar
 for linhaAtual in total:
@@ -170,15 +171,27 @@ dadosIndice.append([viagemSelec, 7])
 # o DRIVER X, so aparece os bairros ( e outros filtros ) que o DRIVER X passou em alguma das suas viagens
 atualizaInfo(total, dadosIndice)
 
+
+# Aplica os filtros para ficar tudo de acordo conforme estabelecido em atualizaInfo()
+if(st.session_state[1]!=condutores):
+    st.experimental_rerun()
+if(st.session_state[2]!=hCwb):
+    st.experimental_rerun()
+if(st.session_state[3]!=hCtb):
+    st.experimental_rerun()
+if(st.session_state[4]!=bairro):
+    st.experimental_rerun()
+if(st.session_state[5]!=cidade):
+    st.experimental_rerun()
+if(st.session_state[6]!=viagem):
+    st.experimental_rerun()
+
 # Pinta a região no mapa de acordo com o bairro selecionado
 pintaBairro(bairroSelec)
 
 
-if st.sidebar.button('Apply Filter'):
-    st.experimental_rerun()
-
 if st.sidebar.button('Refresh Page'):
-    st.session_state.clear();
+    st.session_state.clear()
     st.experimental_rerun()
 
 
@@ -201,7 +214,7 @@ for linhaAtual in total:
             latitude = float(linha[2])
             # folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
             x=random.randint(1,100)
-            if(x>50):
+            if(x>90):
                 folium.Circle([latitude, longitude], 3,
                           color='black').add_to(my_map)
 
