@@ -4,7 +4,6 @@ import pandas as pd
 import random
 import time
 from streamlit_folium import folium_static
-maxMessageSize = 1000
 
 
 def adicionaInfo(vetor, indice, linhaAtual, infoAtual):
@@ -21,75 +20,9 @@ def adicionaInfo(vetor, indice, linhaAtual, infoAtual):
         vetor.append(linhaAtual[indice])
 
 
-st.sidebar.header("user input parameters")
-# info=st.sidebar.selectbox('viagem',('Primeira','Segunda'))
-
-my_map = folium.Map(location=[-25.436085, -49.269290], zoom_start=13, tiles='CartoDB positron')
-
-# if(info=='Primeira'):
-#     arquivo = open('Dados20220921-190631.csv', 'r')
-# if(info=='Segunda'):
-#     arquivo = open('Fulltable_20220429_EFGHSTUV.csv', 'r')
-arquivo = open('Fulltable_20220429_EFGHSTUV.csv', 'r')
-total = arquivo.readlines()
-
-driverAnterior = 'DRIVER'
-
-condutores = ["NULL"]
-hCtb = ["NULL"]
-hCwb = ["NULL"]
-bairro = ["NULL"]
-cidade = ["NULL"]
-viagem = ["NULL"]
-
-
-# Cria vetores contendo as informaçoes da sidebar
-for linhaAtual in total:
-    linha = linhaAtual.split(';')
-    adicionaInfo(condutores, 0, linha, "DRIVER")
-    adicionaInfo(hCtb, 32, linha, "HIERARQUIA_CTB")
-    adicionaInfo(hCwb, 31, linha, "HIERARQUIA_CWB")
-    adicionaInfo(cidade, 28, linha, "CIDADE")
-    adicionaInfo(bairro, 29, linha, "BAIRRO")
-    adicionaInfo(viagem, 7, linha, "ID")
-
-
-st.session_state[0] = ''
-
-
-if 1 not in st.session_state:
-    condut = st.sidebar.selectbox('DRIVER', condutores)
-    hCwbSelec = st.sidebar.selectbox('HIERARQUIA_CWB', hCwb)
-    hCtbSelec = st.sidebar.selectbox('HIERARQUIA_CTB', hCtb)
-    bairroSelec = st.sidebar.selectbox('BAIRRO', bairro)
-    cidadeSelec = st.sidebar.selectbox('CIDADE', cidade)
-    viagemSelec = st.sidebar.selectbox('ID', viagem)
-
-
-else:
-    condutores = st.session_state[1]
-    condut = st.sidebar.selectbox('DRIVER', condutores)
-    hCwb = st.session_state[2]
-    hCwbSelec = st.sidebar.selectbox('HIERARQUIA_CWB', hCwb)
-    hCtb = st.session_state[3]
-    hCtbSelec = st.sidebar.selectbox('HIERARQUIA_CTB', hCtb)
-    bairro = st.session_state[4]
-    bairroSelec = st.sidebar.selectbox('BAIRRO', bairro)
-    cidade = st.session_state[5]
-    cidadeSelec = st.sidebar.selectbox('CIDADE', cidade)
-    viagem = st.session_state[6]
-    viagemSelec = st.sidebar.selectbox('ID', viagem)
-
-dadosIndice = []
-dadosIndice.append([condut, 0])
-dadosIndice.append([hCwbSelec, 31])
-dadosIndice.append([hCtbSelec, 32])
-dadosIndice.append([bairroSelec, 29])
-dadosIndice.append([cidadeSelec, 28])
-dadosIndice.append([viagemSelec, 7])
-
 def atualizaInfo(total, dadosIndice):
     vet = []
+    # Cria vetores auxiliares para poder atualizar os filtros
     novoCondutores = []
     novohCwb = []
     novohCtb = []
@@ -136,44 +69,110 @@ def atualizaInfo(total, dadosIndice):
     st.session_state[5] = novoCidade
     st.session_state[6] = novoViagem
 
-if(bairroSelec=="NULL"):
+
+
+def pintaBairro(bairroSelec):
+    #Escreve a primeira linha, padrao para qualquer tipo de bairro ( inclusive o NULL )
     arq=open('data.csv','w')
     arq.write("Bairros,Codigo,Pinta\n")
+
+    # Caso algum bairro venha a ser selecionado, escreve o seu nome e codigo na linha subjacente
+    if(bairroSelec!="NULL"):
+        arqCodigo=open('codigoBairros.csv','r')
+
+        full=arqCodigo.readlines()
+        
+        #Laço de repetição que busca pelo nome o codigo do bairro
+        for i in full:
+            sep = i.split(',')
+            if(sep[0]==bairroSelec):            
+                arq.write(sep[0]+','+sep[1].rstrip("\n")+','+"1")
+
     arq.close()
+
+    state_data=pd.read_csv('data.csv',encoding='latin-1')
+
+    choropleth = folium.Choropleth(
+        geo_data='bairros.geo.json',
+        data=state_data,
+        columns=['Codigo','Pinta'],
+        key_on='feature.properties.codigo',
+        fill_color="YlOrRd",
+        fill_opacity=0.5,
+        nan_fill_opacity=0,
+        line_opacity=0
+    )
+    choropleth.geojson.add_to(my_map)
+
+    
+
+
+st.sidebar.header("user input parameters")
+
+my_map = folium.Map(location=[-25.436085, -49.269290], zoom_start=13, tiles='CartoDB positron')
+
+arquivo = open('Fulltable_20220429_EFGHSTUV.csv', 'r')
+total = arquivo.readlines()
+
+
+condutores = ["NULL"]
+hCtb = ["NULL"]
+hCwb = ["NULL"]
+bairro = ["NULL"]
+cidade = ["NULL"]
+viagem = ["NULL"]
+
+
+# Cria vetores contendo as informaçoes da sidebar
+for linhaAtual in total:
+    linha = linhaAtual.split(';')
+    adicionaInfo(condutores, 0, linha, "DRIVER")
+    adicionaInfo(hCtb, 32, linha, "HIERARQUIA_CTB")
+    adicionaInfo(hCwb, 31, linha, "HIERARQUIA_CWB")
+    adicionaInfo(cidade, 28, linha, "CIDADE")
+    adicionaInfo(bairro, 29, linha, "BAIRRO")
+    adicionaInfo(viagem, 7, linha, "ID")
+
+# Primeiro caso, ontem a pagina foi recem aberta/recarregada, e todos os filtros estão em NULL
+if 1 not in st.session_state:
+    condut = st.sidebar.selectbox('DRIVER', condutores)
+    hCwbSelec = st.sidebar.selectbox('HIERARQUIA_CWB', hCwb)
+    hCtbSelec = st.sidebar.selectbox('HIERARQUIA_CTB', hCtb)
+    bairroSelec = st.sidebar.selectbox('BAIRRO', bairro)
+    cidadeSelec = st.sidebar.selectbox('CIDADE', cidade)
+    viagemSelec = st.sidebar.selectbox('ID', viagem)
+
+# Caso contrário atualiza de acordo com os filtros selecionados
 else:
-    arq=open('data.csv','w')
-    arq.write("Bairros,Codigo,Pinta\n")
-    arqCodigo=open('codigoBairros.csv','r');
-    full=arqCodigo.readlines()
-    for i in full:
-        sep = i.split(',')
-        if(sep[0]==bairroSelec):            
-            arq.write(sep[0]+','+sep[1].rstrip("\n")+','+"1")
-    arq.close()
+    condutores = st.session_state[1]
+    condut = st.sidebar.selectbox('DRIVER', condutores)
+    hCwb = st.session_state[2]
+    hCwbSelec = st.sidebar.selectbox('HIERARQUIA_CWB', hCwb)
+    hCtb = st.session_state[3]
+    hCtbSelec = st.sidebar.selectbox('HIERARQUIA_CTB', hCtb)
+    bairro = st.session_state[4]
+    bairroSelec = st.sidebar.selectbox('BAIRRO', bairro)
+    cidade = st.session_state[5]
+    cidadeSelec = st.sidebar.selectbox('CIDADE', cidade)
+    viagem = st.session_state[6]
+    viagemSelec = st.sidebar.selectbox('ID', viagem)
 
-state_data=pd.read_csv('data.csv',encoding='latin-1')
+# Copia os estados do filtro para o vetor dadosIndice
+dadosIndice = []
+dadosIndice.append([condut, 0])
+dadosIndice.append([hCwbSelec, 31])
+dadosIndice.append([hCtbSelec, 32])
+dadosIndice.append([bairroSelec, 29])
+dadosIndice.append([cidadeSelec, 28])
+dadosIndice.append([viagemSelec, 7])
 
-choropleth = folium.Choropleth(
-    geo_data='bairros.geo.json',
-    data=state_data,
-    columns=['Codigo','Pinta'],
-    key_on='feature.properties.codigo',
-    fill_color="YlOrRd",
-    fill_opacity=0.5,
-    nan_fill_opacity=0,
-    line_opacity=0
-)
-choropleth.geojson.add_to(my_map)
-
-arq=open('data.csv','w')
-arq.write("Bairros,Codigo,Pinta\n")
-arq.write("XAXIM,57,1")
-arq.close()
-
+# E então atualiza de acordo com os selecionados, por exemplo, caso tenha sido selecionado
+# o DRIVER X, so aparece os bairros ( e outros filtros ) que o DRIVER X passou em alguma das suas viagens
 atualizaInfo(total, dadosIndice)
 
+# Pinta a região no mapa de acordo com o bairro selecionado
+pintaBairro(bairroSelec)
 
-# st.session_state
 
 if st.sidebar.button('Apply Filter'):
     st.experimental_rerun()
@@ -181,6 +180,7 @@ if st.sidebar.button('Apply Filter'):
 if st.sidebar.button('Refresh Page'):
     st.session_state.clear();
     st.experimental_rerun()
+
 
 ignoraPrimeira = 0
 count = 0
@@ -193,6 +193,10 @@ for linhaAtual in total:
             count += 1
             linha[1] = linha[1].replace(',', '.')
             linha[2] = linha[2].replace(',', '.')
+            if(linha[1]==''):
+                linha[1]=0
+            if(linha[2]==''):
+                linha[2]=0
             longitude = float(linha[1])
             latitude = float(linha[2])
             # folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)

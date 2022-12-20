@@ -26,21 +26,6 @@ st.sidebar.header("user input parameters")
 
 my_map = folium.Map(location=[-25.436085, -49.269290], zoom_start=13, tiles='CartoDB positron')
 
-state_data=pd.read_csv('data.csv',encoding='latin-1')
-st.write(state_data)
-
-choropleth = folium.Choropleth(
-    geo_data='bairros.geo.json',
-    data=state_data,
-    columns=['Codigo','Pinta'],
-    key_on='feature.properties.codigo',
-    fill_color="YlOrRd",
-    fill_opacity=0.5,
-    nan_fill_opacity=0,
-    line_opacity=0
-)
-choropleth.geojson.add_to(my_map)
-
 # if(info=='Primeira'):
 #     arquivo = open('Dados20220921-190631.csv', 'r')
 # if(info=='Segunda'):
@@ -103,7 +88,6 @@ dadosIndice.append([bairroSelec, 29])
 dadosIndice.append([cidadeSelec, 28])
 dadosIndice.append([viagemSelec, 7])
 
-
 def atualizaInfo(total, dadosIndice):
     vet = []
     novoCondutores = []
@@ -150,8 +134,41 @@ def atualizaInfo(total, dadosIndice):
     st.session_state[3] = novohCtb
     st.session_state[4] = novoBairro
     st.session_state[5] = novoCidade
-    st.session_state[6] = viagem
+    st.session_state[6] = novoViagem
 
+if(bairroSelec=="NULL"):
+    arq=open('data.csv','w')
+    arq.write("Bairros,Codigo,Pinta\n")
+    arq.close()
+else:
+    arq=open('data.csv','w')
+    arq.write("Bairros,Codigo,Pinta\n")
+    arqCodigo=open('codigoBairros.csv','r');
+    full=arqCodigo.readlines()
+    for i in full:
+        sep = i.split(',')
+        if(sep[0]==bairroSelec):            
+            arq.write(sep[0]+','+sep[1].rstrip("\n")+','+"1")
+    arq.close()
+
+state_data=pd.read_csv('data.csv',encoding='latin-1')
+
+choropleth = folium.Choropleth(
+    geo_data='bairros.geo.json',
+    data=state_data,
+    columns=['Codigo','Pinta'],
+    key_on='feature.properties.codigo',
+    fill_color="YlOrRd",
+    fill_opacity=0.5,
+    nan_fill_opacity=0,
+    line_opacity=0
+)
+choropleth.geojson.add_to(my_map)
+
+arq=open('data.csv','w')
+arq.write("Bairros,Codigo,Pinta\n")
+arq.write("XAXIM,57,1")
+arq.close()
 
 atualizaInfo(total, dadosIndice)
 
@@ -161,6 +178,9 @@ atualizaInfo(total, dadosIndice)
 if st.sidebar.button('Apply Filter'):
     st.experimental_rerun()
 
+if st.sidebar.button('Refresh Page'):
+    st.session_state.clear();
+    st.experimental_rerun()
 
 ignoraPrimeira = 0
 count = 0
@@ -176,7 +196,9 @@ for linhaAtual in total:
             longitude = float(linha[1])
             latitude = float(linha[2])
             # folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
-            folium.Circle([latitude, longitude], 3,
+            x=random.randint(1,100)
+            if(x>50):
+                folium.Circle([latitude, longitude], 3,
                           color='black').add_to(my_map)
 
 st.write(count)
