@@ -3,6 +3,7 @@ import folium
 import pandas as pd
 import random
 import time
+import os
 from streamlit_folium import folium_static
 
 
@@ -104,15 +105,23 @@ def pintaBairro(bairroSelec):
     )
     choropleth.geojson.add_to(my_map)
 
-    
+total=[]
+path = "FullTables"
+for file in os.listdir(path):
+    if file.endswith(".csv"):
+        file_path=path+'/'+file
+        arquivo=open(file_path,'r')
+        total.extend((arquivo.readlines()))
+        arquivo.close()
 
 
 st.sidebar.header("user input parameters")
 
 my_map = folium.Map(location=[-25.436085, -49.269290], zoom_start=13, tiles='CartoDB positron')
 
-arquivo = open('Fulltable_20220429_EFGHSTUV.csv', 'r')
-total = arquivo.readlines()
+# arquivo = open('FullTables/Fulltable_20220429_EFGHSTUV.csv', 'r')
+# total = arquivo.readlines()
+
 
 
 condutores = ["NULL"]
