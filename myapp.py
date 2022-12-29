@@ -19,6 +19,7 @@ def adicionaInfo(vetor, indice, linhaAtual, infoAtual):
     # Caso as duas condições acimas estejam de acordo insere no vetor
     if (adicionaValor == 1):
         vetor.append(linhaAtual[indice])
+        vetor.sort()
 
 
 def atualizaInfo(total, dadosIndice):
@@ -31,25 +32,25 @@ def atualizaInfo(total, dadosIndice):
     novoCidade = []
     novoViagem = []
 
-    if (dadosIndice[0][0] == "NULL"):
-        novoCondutores.append("NULL")
-    if (dadosIndice[1][0] == "NULL"):
-        novohCwb.append("NULL")
-    if (dadosIndice[2][0] == "NULL"):
-        novohCtb.append("NULL")
-    if (dadosIndice[3][0] == "NULL"):
-        novoBairro.append("NULL")
-    if (dadosIndice[4][0] == "NULL"):
-        novoCidade.append("NULL")
-    if (dadosIndice[5][0] == "NULL"):
-        novoViagem.append("NULL")
+    if (dadosIndice[0][0] == ""):
+        novoCondutores.append("")
+    if (dadosIndice[1][0] == ""):
+        novohCwb.append("")
+    if (dadosIndice[2][0] == ""):
+        novohCtb.append("")
+    if (dadosIndice[3][0] == ""):
+        novoBairro.append("")
+    if (dadosIndice[4][0] == ""):
+        novoCidade.append("")
+    if (dadosIndice[5][0] == ""):
+        novoViagem.append("")
 
     for linhaAtual in total:
         linha = linhaAtual.split(';')
         adicionaValor = 1
 
         for i in dadosIndice:
-            if (i[0] != "NULL"):
+            if (i[0] != ""):
                 if (linha[(i[1])] != i[0]):
                     adicionaValor = 0
         if (adicionaValor == 1):
@@ -78,7 +79,7 @@ def pintaBairro(bairroSelec):
     arq.write("Bairros,Codigo,Pinta\n")
 
     # Caso algum bairro venha a ser selecionado, escreve o seu nome e codigo na linha subjacente
-    if(bairroSelec!="NULL"):
+    if(bairroSelec!=""):
         arqCodigo=open('codigoBairros.csv','r')
 
         full=arqCodigo.readlines()
@@ -124,12 +125,12 @@ my_map = folium.Map(location=[-25.436085, -49.269290], zoom_start=13, tiles='Car
 
 
 
-condutores = ["NULL"]
-hCtb = ["NULL"]
-hCwb = ["NULL"]
-bairro = ["NULL"]
-cidade = ["NULL"]
-viagem = ["NULL"]
+condutores = [""]
+hCtb = [""]
+hCwb = [""]
+bairro = [""]
+cidade = [""]
+viagem = [""]
 
 st.session_state[0]=''
 
@@ -211,7 +212,7 @@ for linhaAtual in total:
     if (ignoraPrimeira == 0):
         ignoraPrimeira += 1
     else:
-        if (((linha[0] == condut) or (condut == "NULL")) and ((linha[32] == hCtbSelec) or (hCtbSelec == "NULL")) and ((linha[31] == hCwbSelec) or (hCwbSelec == "NULL")) and ((linha[28] == cidadeSelec) or (cidadeSelec == "NULL")) and ((linha[29] == bairroSelec) or (bairroSelec == "NULL")) and ((linha[7] == viagemSelec) or (viagemSelec == "NULL")) and ((condut != "NULL") or (hCtbSelec != "NULL") or (hCwbSelec != "NULL") or (cidadeSelec != "NULL") or (bairroSelec != "NULL") or (viagemSelec != "NULL"))):
+        if (((linha[0] == condut) or (condut == "")) and ((linha[32] == hCtbSelec) or (hCtbSelec == "")) and ((linha[31] == hCwbSelec) or (hCwbSelec == "")) and ((linha[28] == cidadeSelec) or (cidadeSelec == "")) and ((linha[29] == bairroSelec) or (bairroSelec == "")) and ((linha[7] == viagemSelec) or (viagemSelec == "")) and ((condut != "") or (hCtbSelec != "") or (hCwbSelec != "") or (cidadeSelec != "") or (bairroSelec != "") or (viagemSelec != ""))):
             count += 1
             linha[1] = linha[1].replace(',', '.')
             linha[2] = linha[2].replace(',', '.')
@@ -221,11 +222,10 @@ for linhaAtual in total:
                 linha[2]=0
             longitude = float(linha[1])
             latitude = float(linha[2])
-            # folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
-            x=random.randint(1,100)
-            if(x>90):
-                folium.Circle([latitude, longitude], 3,
-                          color='black').add_to(my_map)
+            # x=random.randint(1,100)
+            # if(x>90):
+            #     folium.Circle([latitude, longitude], 3,
+            #               color='black').add_to(my_map)
 
 st.write(count)
 folium_static(my_map, width=800, height=475)

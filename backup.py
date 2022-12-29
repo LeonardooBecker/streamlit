@@ -222,11 +222,10 @@ for linhaAtual in total:
                 linha[2]=0
             longitude = float(linha[1])
             latitude = float(linha[2])
-            # folium.Circle([latitude,longitude],5,color='black',fill=True,fill_color='black',fill_opacity=1).add_to(my_map)
-            x=random.randint(1,100)
-            if(x>90):
-                folium.Circle([latitude, longitude], 3,
-                          color='black').add_to(my_map)
+            # x=random.randint(1,100)
+            # if(x>90):
+            #     folium.Circle([latitude, longitude], 3,
+            #               color='black').add_to(my_map)
 
 st.write(count)
 folium_static(my_map, width=800, height=475)
