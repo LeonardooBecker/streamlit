@@ -109,6 +109,7 @@ def pintaBairro(bairroSelec):
 total=[]
 path = "./FullTables"
 for file in os.listdir(path):
+    st.write(file)
     if file.endswith(".csv"):
         file_path=path+'/'+file
         arquivo=open(file_path,'r')
