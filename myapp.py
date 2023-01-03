@@ -7,6 +7,8 @@ import folium
 con = sqlite3.connect('meu_banco.db')
 cursor = con.cursor()
 
+
+
 def pintaBairro(bairroSelec):
     #Escreve a primeira linha, padrao para qualquer tipo de bairro ( inclusive o NULL )
     arq=open('data.csv','w')
