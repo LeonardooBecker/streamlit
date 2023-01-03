@@ -107,11 +107,9 @@ def pintaBairro(bairroSelec):
     choropleth.geojson.add_to(my_map)
 
 total=[]
-path = "FullTables"
-for file in os.listdir(path):
-    if file.endswith(".csv"):
-        file_path=path+'/'+file
-        arquivo=open(file_path,'r')
+for file in os.listdir("./"):
+    if file.startswith("Fulltable") and file.endswith(".csv"):
+        arquivo=open(file,'r')
         total.extend((arquivo.readlines()))
         arquivo.close()
 
