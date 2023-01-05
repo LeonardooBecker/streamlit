@@ -1,28 +1,26 @@
+# streamlit_app.py
+
 import streamlit as st
-from deta import Deta
+from supabase import create_client, Client
 
-with st.form("form"):
-    name = st.text_input("Your name")
-    age = st.number_input("Your age")
-    submitted = st.form_submit_button("Store in database")
+# Initialize connection.
+# Uses st.experimental_singleton to only run once.
+@st.experimental_singleton
+def init_connection():
+    url = st.secrets["supabase_url"]
+    key = st.secrets["supabase_key"]
+    return create_client(url, key)
 
+supabase = init_connection()
 
-# Connect to Deta Base with your Project Key
-deta = Deta(st.secrets["deta_key"])
+# Perform query.
+# Uses st.experimental_memo to only rerun when the query changes or after 10 min.
+@st.experimental_memo(ttl=600)
+def run_query():
+    return supabase.table("mytable").select("*").execute()
 
-# Create a new database "example-db"
-# If you need a new database, just use another name.
-db = deta.Base("example-db")
+rows = run_query()
 
-# If the user clicked the submit button,
-# write the data from the form to the database.
-# You can store any data you want here. Just modify that dictionary below (the entries between the {}).
-if submitted:
-    db.put({"name": name, "age": age})
-
-"---"
-"Here's everything stored in the database:"
-# This reads all items from the database and displays them to your app.
-# db_content is a list of dictionaries. You can do everything you want with it.
-db_content = db.fetch().items
-st.write(db_content)
+# Print results.
+for row in rows.data:
+    st.write(f"{row['name']} has a :{row['pet']}:")
