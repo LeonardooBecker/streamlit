@@ -243,8 +243,9 @@ for i in cidades:
     qntWsb=(dfWsb.sum(axis=0))
 
     percentWsb=round(((qntWsb/tempoValidoEspecifico)*100),2)
-    cidadesOfc.append(i)
-    percentCidades.append(percentWsb)
+    if(percentWsb>0):
+        cidadesOfc.append(i)
+        percentCidades.append(percentWsb)
 
 data = {"CIDADE": cidadesOfc, "FREQUENCIA": percentCidades}
 new_df = pd.DataFrame(data)
