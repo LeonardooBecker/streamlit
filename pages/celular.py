@@ -389,8 +389,6 @@ new_df = pd.DataFrame(data)
 dfBairro = new_df.sort_values(["FREQUENCIA"])
 
 
-
-
 st.subheader("Frequência de uso do celular por hora")
 bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
     x='FREQUENCIA',

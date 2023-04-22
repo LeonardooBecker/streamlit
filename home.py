@@ -225,8 +225,7 @@ ids = ids.tolist()
 ids.append("")
 ids.sort()
 
-
-if 1 not in st.session_state:
+if 7 not in st.session_state:
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
     hCtbSelec = st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb)
