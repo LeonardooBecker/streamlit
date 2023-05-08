@@ -40,7 +40,7 @@ def atualizaInfo(tabela, param):
 
 
 
-def corGeral(tabela):
+def corGeral(tabela,escolhaLimite):
     allBairros=pd.Series.unique(tabela["BAIRRO"])
     allBairros=allBairros.tolist()
 
@@ -49,29 +49,33 @@ def corGeral(tabela):
     dfCodigo=pd.read_csv('codigoBairros.csv', sep=',')
 
     maxValue=0
-
     for i in allBairros:
 
         if(i!="NPI"):
             df=tabela[tabela["BAIRRO"]==i]
 
+            dfVelocidade=df["SPD_KMH"]
+            dfLimite=df["LIMITE_VEL"]
+            if(escolhaLimite=="Acima do limite de velocidade"):
+                df=df[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
+            elif (escolhaLimite=="Abaixo do limite de velocidade"):
+                df=df[(dfVelocidade<=dfLimite) & (dfLimite!=0)]
+
+            dfValidEsp=df["VALID_TIME"].astype(int)
+            tempoValidoEspecifico=(dfValidEsp.sum(axis=0))
+
             linedf=dfCodigo[dfCodigo["BAIRRO"]==i]
             codigo=int(linedf["CODIGO"].iloc[0])
 
-
-            dfUsoCelular = df[df["UMP_YN"] == "1"]
-            dfMediaCelSim = dfUsoCelular["UMP_YN"].astype(int)
-            tempoUsoSim = dfMediaCelSim.count()
-            dfValid = tabela["VALID_TIME"].astype(int)
-            tempoValidoTotal = (dfValid.sum(axis=0))
-            tempoValidoTotal = round(tempoValidoTotal, 2)
-            percentUso = tempoUsoSim/tempoValidoTotal*10000
-            if(percentUso>maxValue):
-                maxValue=percentUso
-
-            line=str(i)+","+str(codigo)+","+str(int(percentUso))+"\n"
+            qntWsb=df["WSB"].astype(int).sum(axis=0)
+            if(tempoValidoEspecifico!=0):
+                percentWsb=(1-(qntWsb/tempoValidoEspecifico))*10000
+            else:
+                percentWsb=0
+            if(percentWsb>maxValue):
+                maxValue=percentWsb
+            line=str(i)+','+str(codigo)+','+str(int(percentWsb))+'\n'
             arq.write(line)
-
                 
     arq.close()
 
@@ -95,13 +99,12 @@ def corGeral(tabela):
     for s in choropleth.geojson.data['features']:
         if((s['properties']['codigo']) in state_data['Codigo'].values):
             valor=s['properties']['codigo']
-            s['properties']['percentual'] = int(state_data_indexed.loc[valor,"Pinta"])/100
+            s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/100
 
-    folium.GeoJsonTooltip(['nome', 'percentual']).add_to(choropleth.geojson)
-
+    folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
     colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-    colormap.caption="Valores expressos em porcentagem"
+    colormap.caption="Percentual do tempo sem o uso do cinto de segurança"
     colormap.add_to(my_map)
 
 
@@ -226,7 +229,7 @@ for i in hierarquias:
 
 df=pd.DataFrame({"HIERARQUIA":hctbs, "Porcentagem sem cinto":percentHctbs})
 df = df.set_index("HIERARQUIA")
-st.bar_chart(df)
+bar_chart=st.bar_chart(df)
 
 cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str)
 cidades = cidades.tolist()
@@ -292,9 +295,12 @@ bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
 )
 st.altair_chart(bars)
 
-# corGeral(tabela)
+
+options=["Independente do limite de velocidade","Abaixo do limite de velocidade","Acima do limite de velocidade"]
+escolhaLimite=st.radio("",options)
+
+corGeral(tabela,escolhaLimite)
 
 
-
-# st.subheader("Percentual do tempo de viagem usando o celular segundo bairro de Curitiba")
-# folium_static(my_map)
+st.subheader("Porcentagem do tempo de viagem sem o uso do cinto de segurança segundo bairro de Curitiba")
+folium_static(my_map)

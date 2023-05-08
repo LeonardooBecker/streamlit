@@ -47,7 +47,7 @@ def pintaBairro(bairroSelec):
 
 
 
-def corGeral(esolha,tabela):
+def corGeral(escolha,tabela):
     allBairros=pd.Series.unique(tabela["BAIRRO"])
     allBairros=allBairros.tolist()
 
@@ -366,7 +366,7 @@ if pinta:
     if(escolha=="Percentual do tempo sob excesso de velocidade*"):
         st.subheader("Mapa de calor representando o tempo sob o excesso de velocidade")
 
-    corGeral(options,tabela)
+    corGeral(escolha,tabela)
 else:
     if(escolha=="Frequência de uso do celular (uso/hora)"):
         usandoCelular=resul[(dfPick==1)]

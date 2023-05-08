@@ -143,7 +143,7 @@ def corGeral(tabela):
 
 
     colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-    colormap.caption="Valores expressos em porcentagem"
+    colormap.caption="Valores expressos em frequência"
     colormap.add_to(my_map)
 
 
@@ -406,6 +406,5 @@ st.altair_chart(bars)
 corGeral(tabela)
 
 
-
-st.subheader("Percentual do tempo de viagem usando o celular segundo bairro de Curitiba")
+st.subheader("Frequência do tempo de viagem usando o celular segundo bairro de Curitiba")
 folium_static(my_map)

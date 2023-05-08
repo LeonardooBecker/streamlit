@@ -73,7 +73,6 @@ def corGeral(tabela):
     dfCodigo=pd.read_csv('codigoBairros.csv', sep=',')
 
     maxValue=0
-
     for i in allBairros:
 
         if(i!="NPI"):
@@ -82,20 +81,18 @@ def corGeral(tabela):
             linedf=dfCodigo[dfCodigo["BAIRRO"]==i]
             codigo=int(linedf["CODIGO"].iloc[0])
 
-
-            dfUsoCelular = df[df["UMP_YN"] == "1"]
-            dfMediaCelSim = dfUsoCelular["UMP_YN"].astype(int)
-            tempoUsoSim = dfMediaCelSim.count()
-            dfValid = tabela["VALID_TIME"].astype(int)
-            tempoValidoTotal = (dfValid.sum(axis=0))
-            tempoValidoTotal = round(tempoValidoTotal, 2)
-            percentUso = tempoUsoSim/tempoValidoTotal*10000
-            if(percentUso>maxValue):
-                maxValue=percentUso
-
-            line=str(i)+","+str(codigo)+","+str(int(percentUso))+"\n"
+            dfVelocidade=df["SPD_KMH"]
+            dfLimite=df["LIMITE_VEL"]
+            tempoExcesso=len(df[(dfVelocidade>=dfLimite) & (dfLimite!=0)])
+            tempoCorrigido=len(df[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)])
+            if(tempoCorrigido!=0):
+                pcExcesso=(tempoExcesso/tempoCorrigido)*10000
+            else:
+                pcExcesso=0
+            if(pcExcesso>maxValue):
+                maxValue=pcExcesso
+            line=str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
             arq.write(line)
-
                 
     arq.close()
 
@@ -119,14 +116,15 @@ def corGeral(tabela):
     for s in choropleth.geojson.data['features']:
         if((s['properties']['codigo']) in state_data['Codigo'].values):
             valor=s['properties']['codigo']
-            s['properties']['percentual'] = int(state_data_indexed.loc[valor,"Pinta"])/100
+            s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/100
 
-    folium.GeoJsonTooltip(['nome', 'percentual']).add_to(choropleth.geojson)
-
+    folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
     colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-    colormap.caption="Valores expressos em porcentagem"
+    colormap.caption="Percentual do tempo sob excesso de velocidade"
+
     colormap.add_to(my_map)
+
 
 
 
@@ -134,6 +132,8 @@ def corGeral(tabela):
 # INICIO
 
 my_map = folium.Map(location=[-25.442027, -49.269582],
+                    zoom_start=12, tiles='CartoDB positron')
+map_radar = folium.Map(location=[-25.442027, -49.269582],
                     zoom_start=12, tiles='CartoDB positron')
 
 
@@ -409,3 +409,22 @@ bars = alt.Chart(dfLimite).mark_bar(width=20).encode(
     y=alt.Y("LIMITE VIA",sort='-x') 
 )
 st.altair_chart(bars)
+
+corGeral(tabela)
+
+radares=pd.read_csv("radares.csv",sep=",")
+for i,j in radares.iterrows():
+    if 'LOMBADA' in j['Tipo']:
+        longitude=float(j['Longitude'])
+        latitude=float(j['Latitude'])
+        folium.Circle([latitude, longitude], 15,
+            color='blue', fill_color="blue", fill_opacity=0.7).add_to(map_radar)
+    elif 'RADAR' in j['Tipo']:
+        longitude=float(j['Longitude'])
+        latitude=float(j['Latitude'])
+        folium.Circle([latitude, longitude], 15,
+            color='red', fill_color="red", fill_opacity=0.7).add_to(map_radar)
+
+folium_static(my_map)
+
+folium_static(map_radar)
