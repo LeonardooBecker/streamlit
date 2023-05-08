@@ -30,7 +30,7 @@ def pintaBairro(bairroSelec):
 
     state_data = pd.read_csv('bairroSelec.csv', encoding='latin-1')
 
-    if(bairroSelec!=""):
+    if (bairroSelec != ""):
         choropleth = folium.Choropleth(
             geo_data='bairros.geo.json',
             data=state_data,
@@ -46,59 +46,60 @@ def pintaBairro(bairroSelec):
         choropleth.geojson.add_to(my_map)
 
 
-
-def corGeral(escolha,tabela):
-    allBairros=pd.Series.unique(tabela["BAIRRO"])
-    allBairros=allBairros.tolist()
+def corGeral(escolha, tabela):
+    allBairros = pd.Series.unique(tabela["BAIRRO"])
+    allBairros = allBairros.tolist()
 
     arq = open('data.csv', 'w')
     arq.write("Bairros,Codigo,Pinta\n")
-    dfCodigo=pd.read_csv('codigoBairros.csv', sep=',')
+    dfCodigo = pd.read_csv('codigoBairros.csv', sep=',')
 
-    maxValue=0
+    maxValue = 0
     for i in allBairros:
 
-        if(i!="NPI"):
-            df=tabela[tabela["BAIRRO"]==i]
+        if (i != "NPI"):
+            df = tabela[tabela["BAIRRO"] == i]
 
-            dfValidEsp=df["VALID_TIME"].astype(int)
-            tempoValidoEspecifico=(dfValidEsp.sum(axis=0))
+            dfValidEsp = df["VALID_TIME"].astype(int)
+            tempoValidoEspecifico = (dfValidEsp.sum(axis=0))
 
-            tempoValidoTotal=(tabela["VALID_TIME"].astype(int)).sum(axis=0)
+            tempoValidoTotal = (tabela["VALID_TIME"].astype(int)).sum(axis=0)
 
-            linedf=dfCodigo[dfCodigo["BAIRRO"]==i]
-            codigo=int(linedf["CODIGO"].iloc[0])
+            linedf = dfCodigo[dfCodigo["BAIRRO"] == i]
+            codigo = int(linedf["CODIGO"].iloc[0])
 
-            if(escolha=="Frequência de uso do celular (uso/hora)"):
-                qntPickUps=((df["PICK_UP"]).astype(int)).sum(axis=0)
-                freqUso=(qntPickUps/(tempoValidoTotal/3600))*1000
-                if(freqUso>maxValue):
-                    maxValue=freqUso
-                line=str(i)+","+str(codigo)+","+str(int(freqUso))+"\n"
+            if (escolha == "Frequência de uso do celular (uso/hora)"):
+                qntPickUps = ((df["PICK_UP"]).astype(int)).sum(axis=0)
+                freqUso = (qntPickUps/(tempoValidoTotal/3600))*1000
+                if (freqUso > maxValue):
+                    maxValue = freqUso
+                line = str(i)+","+str(codigo)+","+str(int(freqUso))+"\n"
                 arq.write(line)
 
-            if(escolha=="Percentual do tempo de uso do cinto de segurança"):
-                qntWsb=df["WSB"].astype(int).sum(axis=0)
-                percentWsb=(1-(qntWsb/tempoValidoEspecifico))*10000
-                if(percentWsb>maxValue):
-                    maxValue=percentWsb
-                line=str(i)+','+str(codigo)+','+str(int(percentWsb))+'\n'
+            if (escolha == "Percentual do tempo de uso do cinto de segurança"):
+                qntWsb = df["WSB"].astype(int).sum(axis=0)
+                percentWsb = (1-(qntWsb/tempoValidoEspecifico))*10000
+                if (percentWsb > maxValue):
+                    maxValue = percentWsb
+                line = str(i)+','+str(codigo)+','+str(int(percentWsb))+'\n'
                 arq.write(line)
 
-            if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-                dfVelocidade=df["SPD_KMH"]
-                dfLimite=df["LIMITE_VEL"]
-                tempoExcesso=len(df[(dfVelocidade>=dfLimite) & (dfLimite!=0)])
-                tempoCorrigido=len(df[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)])
-                if(tempoCorrigido!=0):
-                    pcExcesso=(tempoExcesso/tempoCorrigido)*10000
+            if (escolha == "Percentual do tempo sob excesso de velocidade*"):
+                dfVelocidade = df["SPD_KMH"]
+                dfLimite = df["LIMITE_VEL"]
+                tempoExcesso = len(
+                    df[(dfVelocidade >= dfLimite) & (dfLimite != 0)])
+                tempoCorrigido = len(
+                    df[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)])
+                if (tempoCorrigido != 0):
+                    pcExcesso = (tempoExcesso/tempoCorrigido)*10000
                 else:
-                    pcExcesso=0
-                if(pcExcesso>maxValue):
-                    maxValue=pcExcesso
-                line=str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
+                    pcExcesso = 0
+                if (pcExcesso > maxValue):
+                    maxValue = pcExcesso
+                line = str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
                 arq.write(line)
-                
+
     arq.close()
 
     state_data = pd.read_csv('data.csv', encoding='latin-1')
@@ -119,27 +120,28 @@ def corGeral(escolha,tabela):
     state_data_indexed = state_data.set_index('Codigo')
 
     for s in choropleth.geojson.data['features']:
-        if((s['properties']['codigo']) in state_data['Codigo'].values):
-            valor=s['properties']['codigo']
-            if(escolha=="Frequência de uso do celular (uso/hora)"):
-                s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/1000
+        if ((s['properties']['codigo']) in state_data['Codigo'].values):
+            valor = s['properties']['codigo']
+            if (escolha == "Frequência de uso do celular (uso/hora)"):
+                s['properties']['valor'] = int(
+                    state_data_indexed.loc[valor, "Pinta"])/1000
             else:
-                s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/100
+                s['properties']['valor'] = int(
+                    state_data_indexed.loc[valor, "Pinta"])/100
 
     folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
+    if (escolha == "Frequência de uso do celular (uso/hora)"):
+        colormap = linear.YlOrRd_09.scale(0, maxValue/1000)
+        colormap.caption = "Frequência de uso do celular por hora"
 
-    if(escolha=="Frequência de uso do celular (uso/hora)"):
-        colormap= linear.YlOrRd_09.scale(0,maxValue/1000)
-        colormap.caption="Frequência de uso do celular por hora"
+    if (escolha == "Percentual do tempo de uso do cinto de segurança"):
+        colormap = linear.YlOrRd_09.scale(0, maxValue/100)
+        colormap.caption = "Percentual do tempo sem o uso do cinto de segurança"
 
-    if(escolha=="Percentual do tempo de uso do cinto de segurança"):
-        colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-        colormap.caption="Percentual do tempo sem o uso do cinto de segurança"
-
-    if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-        colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-        colormap.caption="Percentual do tempo sob excesso de velocidade"
+    if (escolha == "Percentual do tempo sob excesso de velocidade*"):
+        colormap = linear.YlOrRd_09.scale(0, maxValue/100)
+        colormap.caption = "Percentual do tempo sob excesso de velocidade"
 
     colormap.add_to(my_map)
 
@@ -188,7 +190,6 @@ def atualizaInfo(tabela, param):
     st.session_state[5] = cidades
     st.session_state[6] = ids
     st.session_state[7] = idades
-    
 
 
 my_map = folium.Map(location=[-25.442027, -49.269582],
@@ -225,30 +226,84 @@ ids = ids.tolist()
 ids.append("")
 ids.sort()
 
+
+def converte(hCtb):
+    vetorNominal = []
+    for i in hCtb:
+        if i == "":
+            vetorNominal.append("")
+        elif i == "1":
+            vetorNominal.append("TRÂNSITO RÁPIDO")
+        elif i == "2":
+            vetorNominal.append("ARTERIAL")
+        elif i == "3":
+            vetorNominal.append("COLETORA")
+        elif i == "4":
+            vetorNominal.append("LOCAL")
+        else:
+            vetorNominal.append("NPI")
+    return vetorNominal
+
+def desconverteSing(hCtbSelec):
+    if(hCtbSelec=="TRÂNSITO RÁPIDO"):
+        return "1"
+    elif(hCtbSelec=="ARTERIAL"):
+        return "2"
+    elif(hCtbSelec=="COLETORA"):
+        return "3"
+    elif(hCtbSelec=="LOCAL"):
+        return "4"
+    elif(hCtbSelec=="NPI"):
+        return "NPI"
+    else:
+        return ""
+
+def desconverteVetor(hCtb):
+    vetorNominal=[]
+    for i in hCtb:
+        if(i=="TRÂNSITO RÁPIDO"):
+            vetorNominal.append("1")
+        elif(i=="ARTERIAL"):
+            vetorNominal.append("2")
+        elif(i=="COLETORA"):
+            vetorNominal.append("3")
+        elif(i=="LOCAL"):
+            vetorNominal.append("4")
+        elif(i=="NPI"):
+            vetorNominal.append("NPI")
+        else:
+            vetorNominal.append("")
+    return vetorNominal
+
 if 7 not in st.session_state:
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
-    hCtbSelec = st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb)
+    hCtb=converte(hCtb)
+    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
+    hCtb=desconverteVetor(hCtb)
     bairroSelec = st.sidebar.selectbox('Bairro', bairros)
     cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
     idSelec = st.sidebar.selectbox('Viagem', ids)
 
 else:
-    idades=st.session_state[7]
+    idades = st.session_state[7]
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
-    hCwb=st.session_state[2]
+    hCwb = st.session_state[2]
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
-    hCtb=st.session_state[3]
-    hCtbSelec = st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb)
-    bairros=st.session_state[4]
+    hCtb = st.session_state[3]
+    hCtb=converte(hCtb)
+    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
+    hCtb=desconverteVetor(hCtb)
+    bairros = st.session_state[4]
     bairroSelec = st.sidebar.selectbox('Bairro', bairros)
-    cidades=st.session_state[5]
+    cidades = st.session_state[5]
     cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
-    drivers=st.session_state[1]
+    drivers = st.session_state[1]
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
-    ids=st.session_state[6]
+    ids = st.session_state[6]
     idSelec = st.sidebar.selectbox('Viagem', ids)
+
 
 param = []
 param.append([0, driverSelec])
