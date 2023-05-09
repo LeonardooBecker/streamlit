@@ -56,9 +56,9 @@ def corGeral(tabela,escolhaLimite):
 
             dfVelocidade=df["SPD_KMH"]
             dfLimite=df["LIMITE_VEL"]
-            if(escolhaLimite=="Acima do limite de velocidade"):
+            if(escolhaLimite=="Acima do limite"):
                 df=df[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-            elif (escolhaLimite=="Abaixo do limite de velocidade"):
+            elif (escolhaLimite=="Abaixo do limite"):
                 df=df[(dfVelocidade<=dfLimite) & (dfLimite!=0)]
 
             dfValidEsp=df["VALID_TIME"].astype(int)
@@ -100,6 +100,8 @@ def corGeral(tabela,escolhaLimite):
         if((s['properties']['codigo']) in state_data['Codigo'].values):
             valor=s['properties']['codigo']
             s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/100
+        else:
+            s['properties']['valor']=0
 
     folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
@@ -296,11 +298,11 @@ bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
 st.altair_chart(bars)
 
 
-options=["Independente do limite de velocidade","Abaixo do limite de velocidade","Acima do limite de velocidade"]
-escolhaLimite=st.radio("",options)
+st.subheader("Porcentagem do tempo de viagem sem o uso do cinto de segurança para bairros de Curitiba")
+options=["Independente do limite","Abaixo do limite","Acima do limite"]
+escolhaLimite=st.radio("Segundo limite de velocidade:",options)
 
-corGeral(tabela,escolhaLimite)
+corGeral(resul,escolhaLimite)
 
-
-st.subheader("Porcentagem do tempo de viagem sem o uso do cinto de segurança segundo bairro de Curitiba")
 folium_static(my_map)
+

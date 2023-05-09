@@ -11,6 +11,27 @@ with open("style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
 
+def transformaWeekday(weekdays):
+    vetor=[]
+    for dia in weekdays:
+        if(dia==""):
+            vetor.insert(0,dia)
+        if(dia=="Domingo"):
+            vetor.insert(1,dia)
+        if(dia=="Segunda-feira"):
+            vetor.insert(2,dia)
+        if(dia=="Terça-feira"):
+            vetor.insert(3,dia)
+        if(dia=="Quarta-feira"):
+            vetor.insert(4,dia)
+        if(dia=="Quinta-Feira"):
+            vetor.insert(5,dia)
+        if(dia=="Sexta-feira"):
+            vetor.insert(6,dia)
+        if(dia=="Sábado"):
+            vetor.insert(7,dia)
+    return vetor
+
 def tradutor(word):
     if(word=="CHECKING/BROWSING"):
         return "CONFERINDO/NAVEGANDO"
@@ -27,6 +48,80 @@ def tradutor(word):
     if(word=="NPI"):
         return "NPI"
     return word
+
+def voltaTradutor(word):
+    if(word=="CONFERINDO/NAVEGANDO"):
+        return "CHECKING/BROWSING"
+    elif(word=="USO NO SUPORTE"):
+        return "ON-HOLDER"
+    elif(word=="SEGURANDO"):
+        return "HOLDING"
+    elif(word=="ENVIANDO MENSAGEM"):
+        return "TEXTING"
+    elif(word=="LIGAÇÃO/MENSAGEM DE VOZ"):
+        return "CALLING/VOICE MESSAGE"
+    elif(word=="OUTROS"):
+        return "OTHER"  
+    elif(word=="NPI"):
+        return "NPI"
+    return word
+
+
+def traduzVetor(usos):
+    vetorTraduzido=[]
+    for word in usos:
+        if(word==""):
+            vetorTraduzido.append("")
+        elif(word=="CHECKING/BROWSING"):
+            vetorTraduzido.append("CONFERINDO/NAVEGANDO")
+        elif(word=="ON-HOLDER"):
+            vetorTraduzido.append("USO NO SUPORTE")
+        elif(word=="HOLDING"):
+            vetorTraduzido.append("SEGURANDO")
+        elif(word=="TEXTING"):
+            vetorTraduzido.append("ENVIANDO MENSAGEM")
+        elif(word=="CALLING/VOICE MESSAGE"):
+            vetorTraduzido.append("LIGAÇÃO/MENSAGEM DE VOZ")
+        elif(word=="OTHER"):
+            vetorTraduzido.append("OUTROS")
+        elif(word=="NPI"):
+            vetorTraduzido.append("NPI")
+    return vetorTraduzido
+
+
+def converte(hCtb):
+    vetorNominal = []
+    for i in hCtb:
+        if i == "":
+            vetorNominal.append("")
+        elif i == "1":
+            vetorNominal.append("TRÂNSITO RÁPIDO")
+        elif i == "2":
+            vetorNominal.append("ARTERIAL")
+        elif i == "3":
+            vetorNominal.append("COLETORA")
+        elif i == "4":
+            vetorNominal.append("LOCAL")
+        else:
+            vetorNominal.append("NPI")
+    return vetorNominal
+
+def desconverteSing(hCtbSelec):
+    if(hCtbSelec=="TRÂNSITO RÁPIDO"):
+        return "1"
+    elif(hCtbSelec=="ARTERIAL"):
+        return "2"
+    elif(hCtbSelec=="COLETORA"):
+        return "3"
+    elif(hCtbSelec=="LOCAL"):
+        return "4"
+    elif(hCtbSelec=="NPI"):
+        return "NPI"
+    elif(hCtbSelec==""):
+        return ""
+    else:
+        return hCtbSelec
+
 
 
 def atualizaInfo(tabela, param):
@@ -73,9 +168,9 @@ def atualizaInfo(tabela, param):
 
     st.session_state[1] = drivers
     st.session_state[2] = vsexo
-    st.session_state[3] = hCtb
-    st.session_state[4] = weekdays
-    st.session_state[5] = usos
+    st.session_state[3] = converte(hCtb)
+    st.session_state[4] = transformaWeekday(weekdays)
+    st.session_state[5] = traduzVetor(usos)
     st.session_state[6] = ids
     st.session_state[7] = idades
     st.session_state[8] = categorias
@@ -137,9 +232,11 @@ def corGeral(tabela):
     for s in choropleth.geojson.data['features']:
         if((s['properties']['codigo']) in state_data['Codigo'].values):
             valor=s['properties']['codigo']
-            s['properties']['percentual'] = int(state_data_indexed.loc[valor,"Pinta"])/100
-
-    folium.GeoJsonTooltip(['nome', 'percentual']).add_to(choropleth.geojson)
+            s['properties']['frequencia'] = int(state_data_indexed.loc[valor,"Pinta"])/1000
+        else:
+            s['properties']['frequencia'] = 0
+            
+    folium.GeoJsonTooltip(['nome', 'frequencia']).add_to(choropleth.geojson)
 
 
     colormap= linear.YlOrRd_09.scale(0,maxValue/100)
@@ -190,14 +287,17 @@ categorias = categorias.tolist()
 categorias.append("")
 categorias.sort()
 
+weekdays=transformaWeekday(weekdays)
+usos=traduzVetor(usos)
+hCtb=converte(hCtb)
 
 if 8 not in st.session_state:
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
     sexoSelec = st.sidebar.radio('Sexo', vsexo)
     categoriaSelec = st.sidebar.radio('Categoria', categorias)
-    hCtbSelec = st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb)
+    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
     weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
-    usoSelec = st.sidebar.selectbox('Tipo de uso', usos)
+    usoSelec = voltaTradutor(st.sidebar.selectbox('Tipo de uso', usos))
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
     idSelec = st.sidebar.selectbox('Viagem', ids)
 
@@ -209,11 +309,11 @@ else:
     categorias = st.session_state[8]
     categoriaSelec = st.sidebar.radio('Categoria', categorias)
     hCtb = st.session_state[3]
-    hCtbSelec = st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb)
+    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
     weekdays = st.session_state[4]
     weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
     usos = st.session_state[5]
-    usoSelec = st.sidebar.selectbox('Tipo de uso', usos)
+    usoSelec = voltaTradutor(st.sidebar.selectbox('Tipo de uso', usos))
     drivers = st.session_state[1]
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
     ids = st.session_state[6]
@@ -403,7 +503,7 @@ bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
 )
 st.altair_chart(bars)
 
-corGeral(tabela)
+corGeral(resul)
 
 
 st.subheader("Frequência do tempo de viagem usando o celular segundo bairro de Curitiba")

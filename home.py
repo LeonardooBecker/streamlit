@@ -9,6 +9,39 @@ with open("style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
 
+def converte(hCtb):
+    vetorNominal = []
+    for i in hCtb:
+        if i == "":
+            vetorNominal.append("")
+        elif i == "1":
+            vetorNominal.append("TRÂNSITO RÁPIDO")
+        elif i == "2":
+            vetorNominal.append("ARTERIAL")
+        elif i == "3":
+            vetorNominal.append("COLETORA")
+        elif i == "4":
+            vetorNominal.append("LOCAL")
+        else:
+            vetorNominal.append("NPI")
+    return vetorNominal
+
+
+def desconverteSing(hCtbSelec):
+    if(hCtbSelec=="TRÂNSITO RÁPIDO"):
+        return "1"
+    elif(hCtbSelec=="ARTERIAL"):
+        return "2"
+    elif(hCtbSelec=="COLETORA"):
+        return "3"
+    elif(hCtbSelec=="LOCAL"):
+        return "4"
+    elif(hCtbSelec=="NPI"):
+        return "NPI"
+    else:
+        return ""
+
+
 def pintaBairro(bairroSelec):
     # Escreve a primeira linha, padrao para qualquer tipo de bairro ( inclusive o NULL )
     arq = open('bairroSelec.csv', 'w')
@@ -128,6 +161,8 @@ def corGeral(escolha, tabela):
             else:
                 s['properties']['valor'] = int(
                     state_data_indexed.loc[valor, "Pinta"])/100
+        else:
+            s['properties']['valor'] = 0
 
     folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
@@ -185,7 +220,7 @@ def atualizaInfo(tabela, param):
 
     st.session_state[1] = drivers
     st.session_state[2] = hCwb
-    st.session_state[3] = hCtb
+    st.session_state[3] = converte(hCtb)
     st.session_state[4] = bairros
     st.session_state[5] = cidades
     st.session_state[6] = ids
@@ -226,61 +261,12 @@ ids = ids.tolist()
 ids.append("")
 ids.sort()
 
-
-def converte(hCtb):
-    vetorNominal = []
-    for i in hCtb:
-        if i == "":
-            vetorNominal.append("")
-        elif i == "1":
-            vetorNominal.append("TRÂNSITO RÁPIDO")
-        elif i == "2":
-            vetorNominal.append("ARTERIAL")
-        elif i == "3":
-            vetorNominal.append("COLETORA")
-        elif i == "4":
-            vetorNominal.append("LOCAL")
-        else:
-            vetorNominal.append("NPI")
-    return vetorNominal
-
-def desconverteSing(hCtbSelec):
-    if(hCtbSelec=="TRÂNSITO RÁPIDO"):
-        return "1"
-    elif(hCtbSelec=="ARTERIAL"):
-        return "2"
-    elif(hCtbSelec=="COLETORA"):
-        return "3"
-    elif(hCtbSelec=="LOCAL"):
-        return "4"
-    elif(hCtbSelec=="NPI"):
-        return "NPI"
-    else:
-        return ""
-
-def desconverteVetor(hCtb):
-    vetorNominal=[]
-    for i in hCtb:
-        if(i=="TRÂNSITO RÁPIDO"):
-            vetorNominal.append("1")
-        elif(i=="ARTERIAL"):
-            vetorNominal.append("2")
-        elif(i=="COLETORA"):
-            vetorNominal.append("3")
-        elif(i=="LOCAL"):
-            vetorNominal.append("4")
-        elif(i=="NPI"):
-            vetorNominal.append("NPI")
-        else:
-            vetorNominal.append("")
-    return vetorNominal
+hCtb=converte(hCtb)
 
 if 7 not in st.session_state:
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
-    hCtb=converte(hCtb)
     hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
-    hCtb=desconverteVetor(hCtb)
     bairroSelec = st.sidebar.selectbox('Bairro', bairros)
     cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
@@ -292,9 +278,7 @@ else:
     hCwb = st.session_state[2]
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
     hCtb = st.session_state[3]
-    hCtb=converte(hCtb)
     hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
-    hCtb=desconverteVetor(hCtb)
     bairros = st.session_state[4]
     bairroSelec = st.sidebar.selectbox('Bairro', bairros)
     cidades = st.session_state[5]

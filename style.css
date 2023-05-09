@@ -60,6 +60,15 @@
 
 /*----------------------------------*/
 
+/* Escolha representação de limite sobre influência do cinto */
+.st-d8 {
+    -webkit-box-align: start;
+    display: flex;
+    flex-direction: row;
+}
+
+
+
 p{
     white-space: normal;
     font-weight: 600;
