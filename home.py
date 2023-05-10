@@ -228,7 +228,7 @@ def atualizaInfo(tabela, param):
 
 
 my_map = folium.Map(location=[-25.442027, -49.269582],
-                    zoom_start=12, tiles='CartoDB positron')
+                    zoom_start=12)
 
 tabela = pd.read_csv("AllFullTable.csv", sep=";", low_memory=False)
 

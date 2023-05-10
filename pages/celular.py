@@ -232,7 +232,7 @@ def corGeral(tabela):
     for s in choropleth.geojson.data['features']:
         if((s['properties']['codigo']) in state_data['Codigo'].values):
             valor=s['properties']['codigo']
-            s['properties']['frequencia'] = int(state_data_indexed.loc[valor,"Pinta"])/1000
+            s['properties']['frequencia'] = int(state_data_indexed.loc[valor,"Pinta"])/100
         else:
             s['properties']['frequencia'] = 0
             
@@ -240,7 +240,7 @@ def corGeral(tabela):
 
 
     colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-    colormap.caption="Valores expressos em frequência"
+    colormap.caption="Frequência de uso do celular por hora"
     colormap.add_to(my_map)
 
 

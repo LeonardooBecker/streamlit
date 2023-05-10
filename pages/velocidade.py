@@ -6,30 +6,31 @@ from matplotlib import pyplot as plt
 import plotly.express as px
 import altair as alt
 from branca.colormap import linear
+from branca.colormap import StepColormap
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
 
 def transformaWeekday(weekdays):
-    vetor=[]
+    vetor = []
     for dia in weekdays:
-        if(dia==""):
-            vetor.insert(0,dia)
-        if(dia=="Domingo"):
-            vetor.insert(1,dia)
-        if(dia=="Segunda-feira"):
-            vetor.insert(2,dia)
-        if(dia=="Terça-feira"):
-            vetor.insert(3,dia)
-        if(dia=="Quarta-feira"):
-            vetor.insert(4,dia)
-        if(dia=="Quinta-Feira"):
-            vetor.insert(5,dia)
-        if(dia=="Sexta-feira"):
-            vetor.insert(6,dia)
-        if(dia=="Sábado"):
-            vetor.insert(7,dia)
+        if (dia == ""):
+            vetor.insert(0, dia)
+        if (dia == "Domingo"):
+            vetor.insert(1, dia)
+        if (dia == "Segunda-feira"):
+            vetor.insert(2, dia)
+        if (dia == "Terça-feira"):
+            vetor.insert(3, dia)
+        if (dia == "Quarta-feira"):
+            vetor.insert(4, dia)
+        if (dia == "Quinta-Feira"):
+            vetor.insert(5, dia)
+        if (dia == "Sexta-feira"):
+            vetor.insert(6, dia)
+        if (dia == "Sábado"):
+            vetor.insert(7, dia)
     return vetor
 
 
@@ -52,17 +53,17 @@ def converte(hCtb):
 
 
 def desconverteSing(hCtbSelec):
-    if(hCtbSelec=="TRÂNSITO RÁPIDO"):
+    if (hCtbSelec == "TRÂNSITO RÁPIDO"):
         return "1"
-    elif(hCtbSelec=="ARTERIAL"):
+    elif (hCtbSelec == "ARTERIAL"):
         return "2"
-    elif(hCtbSelec=="COLETORA"):
+    elif (hCtbSelec == "COLETORA"):
         return "3"
-    elif(hCtbSelec=="LOCAL"):
+    elif (hCtbSelec == "LOCAL"):
         return "4"
-    elif(hCtbSelec=="NPI"):
+    elif (hCtbSelec == "NPI"):
         return "NPI"
-    elif(hCtbSelec==""):
+    elif (hCtbSelec == ""):
         return ""
     else:
         return hCtbSelec
@@ -120,37 +121,38 @@ def atualizaInfo(tabela, param):
     st.session_state[8] = cidades
 
 
-
 def corGeral(tabela):
-    allBairros=pd.Series.unique(tabela["BAIRRO"])
-    allBairros=allBairros.tolist()
+    allBairros = pd.Series.unique(tabela["BAIRRO"])
+    allBairros = allBairros.tolist()
 
     arq = open('data.csv', 'w')
     arq.write("Bairros,Codigo,Pinta\n")
-    dfCodigo=pd.read_csv('codigoBairros.csv', sep=',')
+    dfCodigo = pd.read_csv('codigoBairros.csv', sep=',')
 
-    maxValue=0
+    maxValue = 0
     for i in allBairros:
 
-        if(i!="NPI"):
-            df=tabela[tabela["BAIRRO"]==i]
+        if (i != "NPI"):
+            df = tabela[tabela["BAIRRO"] == i]
 
-            linedf=dfCodigo[dfCodigo["BAIRRO"]==i]
-            codigo=int(linedf["CODIGO"].iloc[0])
+            linedf = dfCodigo[dfCodigo["BAIRRO"] == i]
+            codigo = int(linedf["CODIGO"].iloc[0])
 
-            dfVelocidade=df["SPD_KMH"]
-            dfLimite=df["LIMITE_VEL"]
-            tempoExcesso=len(df[(dfVelocidade>=dfLimite) & (dfLimite!=0)])
-            tempoCorrigido=len(df[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)])
-            if(tempoCorrigido!=0):
-                pcExcesso=(tempoExcesso/tempoCorrigido)*10000
+            dfVelocidade = df["SPD_KMH"]
+            dfLimite = df["LIMITE_VEL"]
+            tempoExcesso = len(
+                df[(dfVelocidade >= dfLimite) & (dfLimite != 0)])
+            tempoCorrigido = len(
+                df[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)])
+            if (tempoCorrigido != 0):
+                pcExcesso = (tempoExcesso/tempoCorrigido)*10000
             else:
-                pcExcesso=0
-            if(pcExcesso>maxValue):
-                maxValue=pcExcesso
-            line=str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
+                pcExcesso = 0
+            if (pcExcesso > maxValue):
+                maxValue = pcExcesso
+            line = str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
             arq.write(line)
-                
+
     arq.close()
 
     state_data = pd.read_csv('data.csv', encoding='latin-1')
@@ -171,29 +173,26 @@ def corGeral(tabela):
     state_data_indexed = state_data.set_index('Codigo')
 
     for s in choropleth.geojson.data['features']:
-        if((s['properties']['codigo']) in state_data['Codigo'].values):
-            valor=s['properties']['codigo']
-            s['properties']['valor'] = int(state_data_indexed.loc[valor,"Pinta"])/100
+        if ((s['properties']['codigo']) in state_data['Codigo'].values):
+            valor = s['properties']['codigo']
+            s['properties']['valor'] = int(
+                state_data_indexed.loc[valor, "Pinta"])/100
         else:
-            s['properties']['valor']=0
+            s['properties']['valor'] = 0
 
     folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
-    colormap= linear.YlOrRd_09.scale(0,maxValue/100)
-    colormap.caption="Percentual do tempo sob excesso de velocidade"
+    colormap = linear.YlOrRd_09.scale(0, maxValue/100)
+    colormap.caption = "Percentual do tempo sob excesso de velocidade"
 
     colormap.add_to(my_map)
 
 
-
-
-
 # INICIO
-
 my_map = folium.Map(location=[-25.442027, -49.269582],
                     zoom_start=12, tiles='CartoDB positron')
 map_radar = folium.Map(location=[-25.442027, -49.269582],
-                    zoom_start=12, tiles='CartoDB positron')
+                       zoom_start=12)
 
 
 tabela = pd.read_csv("AllFullTable.csv", sep=";", low_memory=False)
@@ -231,11 +230,12 @@ cidades = cidades.tolist()
 cidades.append("")
 cidades.sort()
 
-weekdays=transformaWeekday(weekdays)
-hCtb=converte(hCtb)
+weekdays = transformaWeekday(weekdays)
+hCtb = converte(hCtb)
 
 if 8 not in st.session_state:
-    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
+    hCtbSelec = desconverteSing(
+        st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
     weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
     sexoSelec = st.sidebar.radio('Sexo', vsexo)
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
@@ -246,7 +246,8 @@ if 8 not in st.session_state:
 
 else:
     hCtb = st.session_state[3]
-    hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
+    hCtbSelec = desconverteSing(
+        st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
     weekdays = st.session_state[4]
     weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
     vsexo = st.session_state[2]
@@ -317,35 +318,35 @@ if st.sidebar.button('Refresh Page'):
     st.experimental_rerun()
 
 
+dfValid = resul["VALID_TIME"].astype(int)
+tempoValidoEspecifico = (dfValid.sum(axis=0))
 
-dfValid=resul["VALID_TIME"].astype(int)
-tempoValidoEspecifico=(dfValid.sum(axis=0))
+dfVelocidade = resul["SPD_KMH"]
+dfLimite = resul["LIMITE_VEL"]
 
-dfVelocidade=resul["SPD_KMH"]
-dfLimite=resul["LIMITE_VEL"]
+dfExcesso = resul[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
+tempoExcesso = len(dfExcesso)
+percentualExcesso = round((tempoExcesso/tempoValidoEspecifico*100), 2)
 
-dfExcesso=resul[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-tempoExcesso=len(dfExcesso)
-percentualExcesso=round((tempoExcesso/tempoValidoEspecifico*100),2)
+dfCorrigido = resul[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
+tempoCorrigido = len(dfCorrigido)
+percentualOportunidade = round((tempoCorrigido/tempoValidoEspecifico*100), 2)
 
-dfCorrigido=resul[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
-tempoCorrigido=len(dfCorrigido)
-percentualOportunidade=round((tempoCorrigido/tempoValidoEspecifico*100),2)
-
-if(tempoCorrigido!=0):
-    excessoCorrigido=round((tempoExcesso/tempoCorrigido*100),2)
+if (tempoCorrigido != 0):
+    excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
 else:
-    excessoCorrigido=0
+    excessoCorrigido = 0
 
-col1, col2, col3= st.columns(3)
+col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("\\% do tempo sob excesso de velocidade em relação ao tempo total de viagem", str(percentualExcesso)+"%")
+    st.metric("\\% do tempo sob excesso de velocidade em relação ao tempo total de viagem", str(
+        percentualExcesso)+"%")
 with col2:
-    st.metric("\\% do tempo de viagem com oportunidade de excesso de velocidade", str(percentualOportunidade)+"%")
+    st.metric("\\% do tempo de viagem com oportunidade de excesso de velocidade", str(
+        percentualOportunidade)+"%")
 with col3:
-    st.metric("\\% do tempo sob excesso de velocidade em relação ao tempo de viagem*", str(excessoCorrigido)+"%")
-
-
+    st.metric("\\% do tempo sob excesso de velocidade em relação ao tempo de viagem*",
+              str(excessoCorrigido)+"%")
 
 
 cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str)
@@ -355,24 +356,24 @@ cidadesOfc = []
 
 for i in cidades:
     dfCidade = resul[resul["CIDADE"] == i]
-    dfValid=dfCidade["VALID_TIME"].astype(int)
-    tempoValidoEspecifico=(dfValid.sum(axis=0))
+    dfValid = dfCidade["VALID_TIME"].astype(int)
+    tempoValidoEspecifico = (dfValid.sum(axis=0))
 
-    dfVelocidade=dfCidade["SPD_KMH"]
-    dfLimite=dfCidade["LIMITE_VEL"]
+    dfVelocidade = dfCidade["SPD_KMH"]
+    dfLimite = dfCidade["LIMITE_VEL"]
 
-    dfExcesso=dfCidade[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-    tempoExcesso=len(dfExcesso)
+    dfExcesso = dfCidade[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
+    tempoExcesso = len(dfExcesso)
 
-    dfCorrigido=dfCidade[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
-    tempoCorrigido=len(dfCorrigido)
+    dfCorrigido = dfCidade[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
+    tempoCorrigido = len(dfCorrigido)
 
-    if(tempoCorrigido!=0):
-        excessoCorrigido=round((tempoExcesso/tempoCorrigido*100),2)
+    if (tempoCorrigido != 0):
+        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
     else:
-        excessoCorrigido=0
+        excessoCorrigido = 0
 
-    if(excessoCorrigido>0):
+    if (excessoCorrigido > 0):
         percentCidades.append(excessoCorrigido)
         cidadesOfc.append(i)
 
@@ -384,7 +385,7 @@ dfCidade = new_df.sort_values(["PERCENTUAL"])
 st.subheader("\\% do tempo sob excesso de velocidade por cidade*")
 bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
     x='PERCENTUAL',
-    y=alt.Y("CIDADE",sort='x') 
+    y=alt.Y("CIDADE", sort='x')
 )
 st.altair_chart(bars)
 
@@ -396,24 +397,24 @@ bairrosOfc = []
 
 for i in bairros:
     dfBairro = resul[resul["BAIRRO"] == i]
-    dfValid=dfBairro["VALID_TIME"].astype(int)
-    tempoValidoEspecifico=(dfValid.sum(axis=0))
+    dfValid = dfBairro["VALID_TIME"].astype(int)
+    tempoValidoEspecifico = (dfValid.sum(axis=0))
 
-    dfVelocidade=dfBairro["SPD_KMH"]
-    dfLimite=dfBairro["LIMITE_VEL"]
+    dfVelocidade = dfBairro["SPD_KMH"]
+    dfLimite = dfBairro["LIMITE_VEL"]
 
-    dfExcesso=dfBairro[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-    tempoExcesso=len(dfExcesso)
+    dfExcesso = dfBairro[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
+    tempoExcesso = len(dfExcesso)
 
-    dfCorrigido=dfBairro[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
-    tempoCorrigido=len(dfCorrigido)
+    dfCorrigido = dfBairro[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
+    tempoCorrigido = len(dfCorrigido)
 
-    if(tempoCorrigido!=0):
-        excessoCorrigido=round((tempoExcesso/tempoCorrigido*100),2)
+    if (tempoCorrigido != 0):
+        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
     else:
-        excessoCorrigido=0
-        
-    if(excessoCorrigido>0):
+        excessoCorrigido = 0
+
+    if (excessoCorrigido > 0):
         percentBairros.append(excessoCorrigido)
         bairrosOfc.append(i)
 
@@ -425,7 +426,7 @@ dfBairro = new_df.sort_values(["PERCENTUAL"])
 st.subheader("\\% do tempo sob excesso de velocidade por bairro de Curitiba*")
 bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
     x='PERCENTUAL',
-    y=alt.Y("BAIRRO",sort='x') 
+    y=alt.Y("BAIRRO", sort='x')
 )
 st.altair_chart(bars)
 
@@ -438,24 +439,24 @@ limiteVias = []
 
 for i in limites:
     dfLm = resul[resul["LIMITE_VEL"] == int(i)]
-    dfValid=dfLm["VALID_TIME"].astype(int)
-    tempoValidoEspecifico=(dfValid.sum(axis=0))
+    dfValid = dfLm["VALID_TIME"].astype(int)
+    tempoValidoEspecifico = (dfValid.sum(axis=0))
 
-    dfVelocidade=dfLm["SPD_KMH"]
-    dfLimite=dfLm["LIMITE_VEL"]
+    dfVelocidade = dfLm["SPD_KMH"]
+    dfLimite = dfLm["LIMITE_VEL"]
 
-    dfExcesso=dfLm[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-    tempoExcesso=len(dfExcesso)
+    dfExcesso = dfLm[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
+    tempoExcesso = len(dfExcesso)
 
-    dfCorrigido=dfLm[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
-    tempoCorrigido=len(dfCorrigido)
+    dfCorrigido = dfLm[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
+    tempoCorrigido = len(dfCorrigido)
 
-    if(tempoCorrigido!=0):
-        excessoCorrigido=round((tempoExcesso/tempoCorrigido*100),2)
+    if (tempoCorrigido != 0):
+        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
     else:
-        excessoCorrigido=0
-        
-    if(excessoCorrigido>0):
+        excessoCorrigido = 0
+
+    if (excessoCorrigido > 0):
         percentVia.append(excessoCorrigido)
         limiteVias.append(i)
 
@@ -467,25 +468,36 @@ dfLimite = new_df.sort_values(["PERCENTUAL"])
 st.subheader("\\% do tempo sob excesso de velocidade segundo limite de velocidade regulamentar da via*")
 bars = alt.Chart(dfLimite).mark_bar(width=20).encode(
     x='PERCENTUAL',
-    y=alt.Y("LIMITE VIA",sort='-x') 
+    y=alt.Y("LIMITE VIA", sort='-x')
 )
 st.altair_chart(bars)
 
 corGeral(resul)
 
-radares=pd.read_csv("radares.csv",sep=",")
-for i,j in radares.iterrows():
+radares = pd.read_csv("radares.csv", sep=",")
+for i, j in radares.iterrows():
     if 'LOMBADA' in j['Tipo']:
-        longitude=float(j['Longitude'])
-        latitude=float(j['Latitude'])
+        longitude = float(j['Longitude'])
+        latitude = float(j['Latitude'])
         folium.Circle([latitude, longitude], 15,
-            color='blue', fill_color="blue", fill_opacity=0.7).add_to(map_radar)
+                      color='blue', fill_color="blue", fill_opacity=0.7).add_to(map_radar)
     elif 'RADAR' in j['Tipo']:
-        longitude=float(j['Longitude'])
-        latitude=float(j['Latitude'])
+        longitude = float(j['Longitude'])
+        latitude = float(j['Latitude'])
         folium.Circle([latitude, longitude], 15,
-            color='red', fill_color="red", fill_opacity=0.7).add_to(map_radar)
+                      color='red', fill_color="red", fill_opacity=0.7).add_to(map_radar)
 
+st.subheader("Percentual do tempo sob excesso de velocidade*")
 folium_static(my_map)
+
+st.subheader("Localização dos dispositivos de fiscalização eletrônica de velocidade")
+
+col1, col2 = st.columns(2)
+with col1:
+    texto_html = f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:red;margin-right:5px;"></span>RADAR - CONSILUX'
+    st.markdown(texto_html, unsafe_allow_html=True)
+with col2:
+    texto_html = f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:blue;margin-right:5px;"></span>LOMBADA - CONSILUX'
+    st.markdown(texto_html, unsafe_allow_html=True)
 
 folium_static(map_radar)
