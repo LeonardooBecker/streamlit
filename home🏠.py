@@ -63,7 +63,7 @@ def corGeral(escolha, tabela):
             linedf = dfCodigo[dfCodigo["BAIRRO"] == i]
             codigo = int(linedf["CODIGO"].iloc[0])
 
-            if (escolha == "Frequência de uso do celular (uso/hora)"):
+            if (escolha == "Frequência de uso do celular (usos/hora)"):
                 qntPickUps = ((df["PICK_UP"]).astype(int)).sum(axis=0)
                 freqUso = (qntPickUps/(tempoValidoTotal/3600))*1000
                 if (freqUso > maxValue):
@@ -117,7 +117,7 @@ def corGeral(escolha, tabela):
     for s in choropleth.geojson.data['features']:
         if ((s['properties']['codigo']) in state_data['Codigo'].values):
             valor = s['properties']['codigo']
-            if (escolha == "Frequência de uso do celular (uso/hora)"):
+            if (escolha == "Frequência de uso do celular (usos/hora)"):
                 s['properties']['valor'] = int(
                     state_data_indexed.loc[valor, "Pinta"])/1000
             else:
@@ -128,7 +128,7 @@ def corGeral(escolha, tabela):
 
     folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
 
-    if (escolha == "Frequência de uso do celular (uso/hora)"):
+    if (escolha == "Frequência de uso do celular (usos/hora)"):
         colormap = linear.YlOrRd_09.scale(0, maxValue/1000)
         colormap.caption = "Frequência de uso do celular por hora"
 
@@ -386,8 +386,9 @@ if escolha != st.session_state.escolha:
     # Rerun do aplicativo
     st.experimental_rerun()
 
+corGeral(st.session_state.escolha,resul)
 
-if(escolha=="Frequência de uso do celular (uso/hora)"):
+if(escolha=="Frequência de uso do celular (usos/hora)"):
     st.subheader("Mapa de calor representando a frequência de uso do celular por hora")
 
 if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
@@ -396,9 +397,8 @@ if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
 if(escolha=="Percentual do tempo sob excesso de velocidade*"):
     st.subheader("Mapa de calor representando o tempo sob o excesso de velocidade")
 
-corGeral(escolha,resul)
 
-if(escolha=="Frequência de uso do celular (uso/hora)"):
+if(escolha=="Frequência de uso do celular (usos/hora)"):
     usandoCelular=resul[(dfPick==1)]
     for linha, dados in usandoCelular.iterrows():
         longitude=float((dados[1]))
@@ -428,7 +428,7 @@ if(escolha=="Percentual do tempo sob excesso de velocidade*"):
             
 folium_static(my_map)
 
-if(escolha=="Frequência de uso do celular (uso/hora)"):
+if(escolha=="Frequência de uso do celular (usos/hora)"):
     st.subheader("Pontos referentes aos locais onde houve utilização do celular")
 
 if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
