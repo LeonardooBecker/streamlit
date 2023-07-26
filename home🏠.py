@@ -395,48 +395,48 @@ if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
     st.subheader("Mapa de calor representando o percentual do tempo sem o uso do cinto de segurança")
 
 if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-    st.subheader("Mapa de calor representando o tempo sob o excesso de velocidade")
+    st.subheader("Mapa de calor representando o percentual do tempo sob o excesso de velocidade")
 
 
-if(escolha=="Frequência de uso do celular (usos/hora)"):
-    usandoCelular=resul[(dfPick==1)]
-    for linha, dados in usandoCelular.iterrows():
-        longitude=float((dados[1]))
-        latitude=float(dados[2])
-        if not (math.isnan(longitude) or math.isnan(latitude)):
-            folium.Circle([latitude, longitude], 3,
-                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+# if(escolha=="Frequência de uso do celular (usos/hora)"):
+#     usandoCelular=resul[(dfPick==1)]
+#     for linha, dados in usandoCelular.iterrows():
+#         longitude=float((dados[1]))
+#         latitude=float(dados[2])
+#         if not (math.isnan(longitude) or math.isnan(latitude)):
+#             folium.Circle([latitude, longitude], 3,
+#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
 
 
-if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
-    semCinto=(resul[(dfWsb==0)])            
-    for linha, dados in semCinto.iterrows():
-        longitude=float((dados[1]))
-        latitude=float(dados[2])
-        if not (math.isnan(longitude) or math.isnan(latitude)):
-            folium.Circle([latitude, longitude], 3,
-                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+# if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
+#     semCinto=(resul[(dfWsb==0)])            
+#     for linha, dados in semCinto.iterrows():
+#         longitude=float((dados[1]))
+#         latitude=float(dados[2])
+#         if not (math.isnan(longitude) or math.isnan(latitude)):
+#             folium.Circle([latitude, longitude], 3,
+#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
 
-if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-    # dfExcesso definido quando foi usado para caluclar o paramentro de percentual de excesso de velocidade ( nao houve alteracoes no dataframe )
-    for linha, dados in dfExcesso.iterrows():
-        longitude=float((dados[1]))
-        latitude=float(dados[2])
-        if not (math.isnan(longitude) or math.isnan(latitude)):
-            folium.Circle([latitude, longitude], 3,
-                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+# if(escolha=="Percentual do tempo sob excesso de velocidade*"):
+#     # dfExcesso definido quando foi usado para caluclar o paramentro de percentual de excesso de velocidade ( nao houve alteracoes no dataframe )
+#     for linha, dados in dfExcesso.iterrows():
+#         longitude=float((dados[1]))
+#         latitude=float(dados[2])
+#         if not (math.isnan(longitude) or math.isnan(latitude)):
+#             folium.Circle([latitude, longitude], 3,
+#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
             
+
+# if(escolha=="Frequência de uso do celular (usos/hora)"):
+#     st.subheader("Pontos referentes aos locais onde houve utilização do celular")
+
+# if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
+#     st.subheader("Pontos referentes aos locais onde não houve a utilização do cinto de segurança")
+
+# if(escolha=="Percentual do tempo sob excesso de velocidade*"):
+#     st.subheader("Pontos referentes aos locais onde houve o excesso de velocidade")
+
 folium_static(my_map)
-
-if(escolha=="Frequência de uso do celular (usos/hora)"):
-    st.subheader("Pontos referentes aos locais onde houve utilização do celular")
-
-if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
-    st.subheader("Pontos referentes aos locais onde não houve a utilização do cinto de segurança")
-
-if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-    st.subheader("Pontos referentes aos locais onde houve o excesso de velocidade")
-
 
 ## Rodapé da página
 
