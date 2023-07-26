@@ -371,7 +371,7 @@ with col4:
     st.metric("Tempo de viagem (h)",round((tempoValidoEspecifico/3600),2))
 
 
-options=["Frequência de uso do celular (uso/hora)","Percentual do tempo de não uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
+options=["Frequência de uso do celular (usos/hora)","Percentual do tempo de não uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
 
 if 'escolha' not in st.session_state:
     st.session_state.escolha = options[0]
