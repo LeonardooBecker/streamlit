@@ -369,20 +369,45 @@ if (st.session_state[8] != categorias):
     st.experimental_rerun()
 
 
-if st.sidebar.button('Refresh Page'):
+if st.sidebar.button('Atualizar página'):
     st.session_state.clear()
     st.experimental_rerun()
+
+
+## Título da página
+
+st.markdown("""
+            <style>
+            .titulo {
+                display: flex;
+            }
+            #texto{
+                padding: 10px;
+            }
+            #logoNDS {
+                display: block;
+                width: 40%;
+                height: fit-content;
+                margin: auto;
+                padding: 15px;
+            }
+            </style>
+            <div class="titulo">
+                <h1 style="font-size:32px; text-align:center">Estudo Naturalístico de Direção Brasileiro - Indicadores sobre o uso do celular ao volante</h1>
+                <img src='https://www.inf.ufpr.br/lbo21/images/logoBranca.png' id="logoNDS">
+            </div>
+            <hr>
+            """, unsafe_allow_html=True)
+
+##---------------------------------------------
 
 
 dfUsoCelular = resul[resul["UMP_YN"] == "1"]
 dfSemCelular = resul[resul["UMP_YN"] == "0"]
 
-dfValid = tabela["VALID_TIME"].astype(int)
+dfValid = resul["VALID_TIME"].astype(int)
 tempoValidoTotal = (dfValid.sum(axis=0))
 tempoValidoTotal = round(tempoValidoTotal, 2)
-
-dfValid = resul["VALID_TIME"].astype(int)
-tempoValidoEspecifico = (dfValid.sum(axis=0))
 
 dfPick = resul["PICK_UP"].astype(int)
 qntPickUp = (dfPick.sum(axis=0))
@@ -416,14 +441,13 @@ else:
 actions = (pd.Series.unique(resul["ACTION"])).astype(str)
 actions.tolist()
 
-
 col1, col2, col3, col4= st.columns(4)
 with col1:
-    st.metric("Velocidade média durante o uso", velDuranteUso)
+    st.metric("Velocidade média durante o uso (km/h)", velDuranteUso)
 with col2:
-    st.metric("Velocidade média sem o uso", velSemUso)
+    st.metric("Velocidade média sem o uso (km/h)", velSemUso)
 with col3:
-    st.metric("Frequência do uso do celular", freqUsoCelular)
+    st.metric("Frequência do uso do celular  (usos/h)", freqUsoCelular)
 with col4:
     st.metric(" Percentual do tempo de viagem usando o celular",
               str(percentUso)+"%")
@@ -438,7 +462,7 @@ for i in actions:
         slices.append(value)
         labels.append(tradutor(i))
 data = {"Tipo de uso": labels, "Quantidade de uso": slices}
-st.subheader("Distribuição dos tipos de uso do celular")
+st.subheader("Distribuição dos tipos de uso do celular (% do tempo)")
 fig = px.pie(data, values='Quantidade de uso', names='Tipo de uso',height=300)
 st.write(fig)
 
@@ -489,14 +513,14 @@ new_df = pd.DataFrame(data)
 dfBairro = new_df.sort_values(["FREQUENCIA"])
 
 
-st.subheader("Frequência de uso do celular por hora")
+st.subheader("Frequência de uso do celular por cidade (usos/h)")
 bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
     x='FREQUENCIA',
     y=alt.Y("CIDADE",sort='-x') 
 )
 st.altair_chart(bars)
 
-st.subheader("Frequência de uso do celular por hora")
+st.subheader("Frequência de uso do celular por bairro (usos/h)")
 bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
     x='FREQUENCIA',
     y=alt.Y("BAIRRO",sort='-x') 
@@ -506,5 +530,55 @@ st.altair_chart(bars)
 corGeral(resul)
 
 
-st.subheader("Frequência do tempo de viagem usando o celular segundo bairro de Curitiba")
+st.subheader("Frequência do uso do celular segundo bairro de Curitiba (usos/h)")
 folium_static(my_map)
+
+## Rodapé da página
+
+st.markdown("""
+            <style>
+            .back
+            {
+                padding: 30px;
+                border-radius: 20px;
+                background-color: #c8c8c8;
+            }
+            #infos {
+                color: #353535;
+            }
+            #refs
+            {
+                color: #666666;
+                margin: 30px;
+            }
+            .images {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .images img {
+                width:30%;
+                padding: 20px;
+                flex: 1;
+                object-fit: contain; 
+            }
+            </style>
+            <hr>
+            <div class="back">
+                <div id="infos">
+                    <p style="margin:2px; font-size: 14px;">Desenvolvedor: Leonardo Becker de Oliveira <a href="mailto:lbo21@inf.ufpr.br"> lbo21@inf.ufpr.br </a></p>
+                    <p style="margin:2px; font-size: 14px;">Coordenador: Prof. Dr. Jorge Tiago Bastos <a href="mailto:jtbastos@ufpr.br"> jtbastos@ufpr.br </a></p>
+                    <p style="margin:2px; font-size: 14px;">Financiamento: Universidade Federal do Paraná, Conselho Nacional de Desenvolvimento Científico e Tecnológico, Observatório Nacional de Segurança Viária e Mobi 7 - Soluções para Mobilidade.</p>
+                    <p style="margin:2px; font-size: 14px;">Mais informações em <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">Estudo Naturalístico de Direção Brasileiro - CEPPUR-UFPR</a> (Link para este endereço: <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/</a> )</p>
+                </div>
+                <div id="refs">     
+                    <p style="font-size: 12px; margin:2px">* % do tempo sob excesso de velocidade em relação ao tempo de viagem com oportunidade de excesso de velocidade</p>
+                    <p style="font-size: 12px; margin:2px"> Para referenciar este conteúdo: OLIVEIRA, Leonardo Becker; BASTOS, Jorge Tiago. Estudo Naturalístico de Direção Brasileiro: Painel de visualização. Curitiba 2023. Disponível em: <a href="https://painelndsbr.streamlit.app">Streamlit</a>. Acesso em: dia mês. ano. </p>
+                </div>
+                <div class="images">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoUFPR.jpg">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoCNPQ.jpg">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoONSV.png">
+                </div>
+            </div>
+             """ , unsafe_allow_html=True
+            )

@@ -4,11 +4,11 @@ from streamlit_folium import folium_static
 import folium
 from branca.colormap import linear
 import json
+import math
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
-
-
+    
 def converte(hCtb):
     vetorNominal = []
     for i in hCtb:
@@ -41,44 +41,6 @@ def desconverteSing(hCtbSelec):
     else:
         return ""
 
-
-def pintaBairro(bairroSelec):
-    # Escreve a primeira linha, padrao para qualquer tipo de bairro ( inclusive o NULL )
-    arq = open('bairroSelec.csv', 'w')
-    arq.write("Bairros,Codigo,Pinta\n")
-
-    # Caso algum bairro venha a ser selecionado, escreve o seu nome e codigo na linha subjacente
-    if (bairroSelec != ""):
-        arqCodigo = open('codigoBairros.csv', 'r')
-
-        full = arqCodigo.readlines()
-
-        # Laço de repetição que busca pelo nome o codigo do bairro
-        for i in full:
-            sep = i.split(',')
-            if (sep[0] == bairroSelec):
-                arq.write(sep[0]+','+sep[1].rstrip("\n")+','+"1")
-
-    arq.close()
-
-    state_data = pd.read_csv('bairroSelec.csv', encoding='latin-1')
-
-    if (bairroSelec != ""):
-        choropleth = folium.Choropleth(
-            geo_data='bairros.geo.json',
-            data=state_data,
-            columns=['Codigo', 'Pinta'],
-            key_on='feature.properties.codigo',
-            fill_color="Greys",
-            fill_opacity=0.7,
-            nan_fill_opacity=0.2,
-            nan_fill_color="White",
-            line_opacity=0.5,
-            line_color="Gray"
-        )
-        choropleth.geojson.add_to(my_map)
-
-
 def corGeral(escolha, tabela):
     allBairros = pd.Series.unique(tabela["BAIRRO"])
     allBairros = allBairros.tolist()
@@ -109,7 +71,7 @@ def corGeral(escolha, tabela):
                 line = str(i)+","+str(codigo)+","+str(int(freqUso))+"\n"
                 arq.write(line)
 
-            if (escolha == "Percentual do tempo de uso do cinto de segurança"):
+            if (escolha == "Percentual do tempo de não uso do cinto de segurança"):
                 qntWsb = df["WSB"].astype(int).sum(axis=0)
                 percentWsb = (1-(qntWsb/tempoValidoEspecifico))*10000
                 if (percentWsb > maxValue):
@@ -170,7 +132,7 @@ def corGeral(escolha, tabela):
         colormap = linear.YlOrRd_09.scale(0, maxValue/1000)
         colormap.caption = "Frequência de uso do celular por hora"
 
-    if (escolha == "Percentual do tempo de uso do cinto de segurança"):
+    if (escolha == "Percentual do tempo de não uso do cinto de segurança"):
         colormap = linear.YlOrRd_09.scale(0, maxValue/100)
         colormap.caption = "Percentual do tempo sem o uso do cinto de segurança"
 
@@ -318,51 +280,6 @@ for i in param:
 
 atualizaInfo(resul,param)
 
-dfValid=tabela["VALID_TIME"].astype(int)
-tempoValidoTotal=(dfValid.sum(axis=0))
-tempoValidoTotal=round((tempoValidoTotal/3600),2)
-
-dfValid=resul["VALID_TIME"].astype(int)
-tempoValidoEspecifico=(dfValid.sum(axis=0))
-
-dfPick=resul["PICK_UP"].astype(int)
-qntPickUp=(dfPick.sum(axis=0))
-
-
-freqUsoCelular=round((qntPickUp/tempoValidoTotal),2)
-
-
-dfWsb=resul["WSB"].astype(int)
-qntWsb=(dfWsb.sum(axis=0))
-
-percentWsb=round(((qntWsb/tempoValidoEspecifico)*100),2)
-
-
-dfVelocidade=resul["SPD_KMH"]
-dfLimite=resul["LIMITE_VEL"]
-
-dfExcesso=resul[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
-tempoExcesso=len(dfExcesso)
-
-dfCorrigido=resul[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
-tempoCorrigido=len(dfCorrigido)
-
-if(tempoCorrigido!=0):
-    pcExcesso=round((tempoExcesso/tempoCorrigido*100),2)
-else:
-    pcExcesso=0
-
-col1, col2, col3, col4= st.columns(4)
-
-with col1:
-    st.metric("Frequência de uso do celular (uso/hora)",freqUsoCelular)
-with col2:
-    st.metric("Percentual do tempo de uso do cinto de segurança",str(percentWsb)+"%")
-with col3:
-    st.metric("Percentual do tempo sob excesso de velocidade*",str(pcExcesso)+"%")
-with col4:
-    st.metric("Tempo de viagem (h)",round((tempoValidoEspecifico/3600),2))
-
 if(st.session_state[1]!=drivers):
     st.experimental_rerun()
 if(st.session_state[2]!=hCwb):
@@ -379,67 +296,194 @@ if(st.session_state[7]!=idades):
     st.experimental_rerun()
 
 
-if st.sidebar.button('Refresh Page'):
+if st.sidebar.button('Atualizar página'):
     st.session_state.clear()
     st.experimental_rerun()
 
+## Título da página
 
-pintaBairro(bairroSelec)
+st.markdown("""
+            <style>
+            .titulo {
+                display: flex;
+            }
+            #texto{
+                padding: 10px;
+            }
+            #logoNDS {
+                display: block;
+                width: 40%;
+                height: fit-content;
+                margin: auto;
+                padding: 15px;
+            }
+            </style>
+            <div class="titulo">
+                <h1 style="font-size:42px; text-align:center">Estudo Naturalístico de Direção Brasileiro</h1>
+                <img src='https://www.inf.ufpr.br/lbo21/images/logoBranca.png' id="logoNDS">
+            </div>
+            <hr>
+            """, unsafe_allow_html=True)
 
-options=["Frequência de uso do celular (uso/hora)","Percentual do tempo de uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
+##---------------------------------------------
 
-escolha=st.selectbox("",options)
 
-pinta=1
-for i in param:
-    if(i[1]!=""):
-       pinta=0
+dfValid=resul["VALID_TIME"].astype(int)
+tempoValidoEspecifico=(dfValid.sum(axis=0))
 
-if pinta:
-    if(escolha=="Frequência de uso do celular (uso/hora)"):
-        st.subheader("Mapa de calor representando a frequência de uso do celular por hora")
+dfPick=resul["PICK_UP"].astype(int)
+qntPickUp=(dfPick.sum(axis=0))
 
-    if(escolha=="Percentual do tempo de uso do cinto de segurança"):
-        st.subheader("Mapa de calor representando o percentual do tempo sem o uso do cinto de segurança")
 
-    if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-        st.subheader("Mapa de calor representando o tempo sob o excesso de velocidade")
+freqUsoCelular=round((qntPickUp/(tempoValidoEspecifico/3600)),2)
 
-    corGeral(escolha,tabela)
+
+dfWsb=resul["WSB"].astype(int)
+qntWsb=(dfWsb.sum(axis=0))
+
+percentWsb=round(((1-qntWsb/tempoValidoEspecifico)*100),2)
+
+
+dfVelocidade=resul["SPD_KMH"]
+dfLimite=resul["LIMITE_VEL"]
+
+dfExcesso=resul[(dfVelocidade>=dfLimite) & (dfLimite!=0)]
+tempoExcesso=len(dfExcesso)
+
+dfCorrigido=resul[(dfVelocidade>=(dfLimite-10)) & (dfLimite!=0)]
+tempoCorrigido=len(dfCorrigido)
+
+if(tempoCorrigido!=0):
+    pcExcesso=round((tempoExcesso/tempoCorrigido*100),2)
 else:
-    if(escolha=="Frequência de uso do celular (uso/hora)"):
-        usandoCelular=resul[(dfPick==1)]
-        for linha, dados in usandoCelular.iterrows():
-            longitude=float((dados[1]))
-            latitude=float(dados[2])
-            folium.Circle([latitude, longitude], 3,
-                        color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+    pcExcesso=0
 
 
-    if(escolha=="Percentual do tempo de uso do cinto de segurança"):
-        semCinto=(resul[(dfWsb==0)])            
-        for linha, dados in semCinto.iterrows():
-            longitude=float((dados[1]))
-            latitude=float(dados[2])
-            folium.Circle([latitude, longitude], 3,
-                        color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+col1, col2, col3, col4= st.columns(4)
 
-    if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-        # dfExcesso definido quando foi usado para caluclar o paramentro de percentual de excesso de velocidade ( nao houve alteracoes no dataframe )
-        for linha, dados in dfExcesso.iterrows():
-            longitude=float((dados[1]))
-            latitude=float(dados[2])
+with col1:
+    st.metric("Frequência de uso do celular (usos/hora)",freqUsoCelular)
+with col2:
+    st.metric("Percentual do tempo de não uso do cinto de segurança",str(percentWsb)+"%")
+with col3:
+    st.metric("Percentual do tempo sob excesso de velocidade*",str(pcExcesso)+"%")
+with col4:
+    st.metric("Tempo de viagem (h)",round((tempoValidoEspecifico/3600),2))
+
+
+options=["Frequência de uso do celular (uso/hora)","Percentual do tempo de não uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
+
+if 'escolha' not in st.session_state:
+    st.session_state.escolha = options[0]
+
+# Botão de seleção
+escolha = st.selectbox("",options, index=options.index(st.session_state.escolha))
+
+# Verificar se houve alteração na opção selecionada
+if escolha != st.session_state.escolha:
+    # Atualizar a opção selecionada no st.session_state
+    st.session_state.escolha = escolha
+    # Rerun do aplicativo
+    st.experimental_rerun()
+
+
+if(escolha=="Frequência de uso do celular (uso/hora)"):
+    st.subheader("Mapa de calor representando a frequência de uso do celular por hora")
+
+if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
+    st.subheader("Mapa de calor representando o percentual do tempo sem o uso do cinto de segurança")
+
+if(escolha=="Percentual do tempo sob excesso de velocidade*"):
+    st.subheader("Mapa de calor representando o tempo sob o excesso de velocidade")
+
+corGeral(escolha,resul)
+
+if(escolha=="Frequência de uso do celular (uso/hora)"):
+    usandoCelular=resul[(dfPick==1)]
+    for linha, dados in usandoCelular.iterrows():
+        longitude=float((dados[1]))
+        latitude=float(dados[2])
+        if not (math.isnan(longitude) or math.isnan(latitude)):
             folium.Circle([latitude, longitude], 3,
-                        color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+
+
+if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
+    semCinto=(resul[(dfWsb==0)])            
+    for linha, dados in semCinto.iterrows():
+        longitude=float((dados[1]))
+        latitude=float(dados[2])
+        if not (math.isnan(longitude) or math.isnan(latitude)):
+            folium.Circle([latitude, longitude], 3,
+                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
+
+if(escolha=="Percentual do tempo sob excesso de velocidade*"):
+    # dfExcesso definido quando foi usado para caluclar o paramentro de percentual de excesso de velocidade ( nao houve alteracoes no dataframe )
+    for linha, dados in dfExcesso.iterrows():
+        longitude=float((dados[1]))
+        latitude=float(dados[2])
+        if not (math.isnan(longitude) or math.isnan(latitude)):
+            folium.Circle([latitude, longitude], 3,
+                    color='red', fill_color="red", fill_opacity=1).add_to(my_map)
             
-    if(escolha=="Frequência de uso do celular (uso/hora)"):
-        st.subheader("Pontos referentes aos locais onde houve utilização do celular")
-
-    if(escolha=="Percentual do tempo de uso do cinto de segurança"):
-        st.subheader("Pontos referentes aos locais onde não houve a utilização do cinto de segurança")
-
-    if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-        st.subheader("Pontos referentes aos locais onde houve o excesso de velocidade")
-
-
 folium_static(my_map)
+
+if(escolha=="Frequência de uso do celular (uso/hora)"):
+    st.subheader("Pontos referentes aos locais onde houve utilização do celular")
+
+if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
+    st.subheader("Pontos referentes aos locais onde não houve a utilização do cinto de segurança")
+
+if(escolha=="Percentual do tempo sob excesso de velocidade*"):
+    st.subheader("Pontos referentes aos locais onde houve o excesso de velocidade")
+
+
+## Rodapé da página
+
+st.markdown("""
+            <style>
+            .back
+            {
+                padding: 30px;
+                border-radius: 20px;
+                background-color: #c8c8c8;
+            }
+            #infos {
+                color: #353535;
+            }
+            #refs
+            {
+                color: #666666;
+                margin: 30px;
+            }
+            .images {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .images img {
+                width:30%;
+                padding: 20px;
+                flex: 1;
+                object-fit: contain; 
+            }
+            </style>
+            <hr>
+            <div class="back">
+                <div id="infos">
+                    <p style="margin:2px; font-size: 14px;">Desenvolvedor: Leonardo Becker de Oliveira <a href="mailto:lbo21@inf.ufpr.br"> lbo21@inf.ufpr.br </a></p>
+                    <p style="margin:2px; font-size: 14px;">Coordenador: Prof. Dr. Jorge Tiago Bastos <a href="mailto:jtbastos@ufpr.br"> jtbastos@ufpr.br </a></p>
+                    <p style="margin:2px; font-size: 14px;">Financiamento: Universidade Federal do Paraná, Conselho Nacional de Desenvolvimento Científico e Tecnológico, Observatório Nacional de Segurança Viária e Mobi 7 - Soluções para Mobilidade.</p>
+                    <p style="margin:2px; font-size: 14px;">Mais informações em <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">Estudo Naturalístico de Direção Brasileiro - CEPPUR-UFPR</a> (Link para este endereço: <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/</a> )</p>
+                </div>
+                <div id="refs">     
+                    <p style="font-size: 12px; margin:2px">* % do tempo sob excesso de velocidade em relação ao tempo de viagem com oportunidade de excesso de velocidade</p>
+                    <p style="font-size: 12px; margin:2px"> Para referenciar este conteúdo: OLIVEIRA, Leonardo Becker; BASTOS, Jorge Tiago. Estudo Naturalístico de Direção Brasileiro: Painel de visualização. Curitiba 2023. Disponível em: <a href="https://painelndsbr.streamlit.app">Streamlit</a>. Acesso em: dia mês. ano. </p>
+                </div>
+                <div class="images">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoUFPR.jpg">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoCNPQ.jpg">
+                    <img src="https://www.inf.ufpr.br/lbo21/images/logoONSV.png">
+                </div>
+            </div>
+             """ , unsafe_allow_html=True
+            )
