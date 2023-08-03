@@ -82,7 +82,7 @@ def corGeral(tabela,escolhaLimite):
     state_data = pd.read_csv('./data/data.csv', encoding='latin-1')
 
     choropleth = folium.Choropleth(
-        geo_data='bairros.geo.json',
+        geo_data='./data/bairros.geo.json',
         data=state_data,
         columns=['Codigo', 'Pinta'],
         key_on='feature.properties.codigo',
