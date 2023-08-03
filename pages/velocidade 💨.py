@@ -8,7 +8,7 @@ import altair as alt
 from branca.colormap import linear
 from branca.colormap import StepColormap
 
-with open("style.css") as f:
+with open("./css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
 
@@ -125,9 +125,9 @@ def corGeral(tabela):
     allBairros = pd.Series.unique(tabela["BAIRRO"])
     allBairros = allBairros.tolist()
 
-    arq = open('data.csv', 'w')
+    arq = open('./data/data.csv', 'w')
     arq.write("Bairros,Codigo,Pinta\n")
-    dfCodigo = pd.read_csv('codigoBairros.csv', sep=',')
+    dfCodigo = pd.read_csv('./data/codigoBairros.csv', sep=',')
 
     maxValue = 0
     for i in allBairros:
@@ -155,7 +155,7 @@ def corGeral(tabela):
 
     arq.close()
 
-    state_data = pd.read_csv('data.csv', encoding='latin-1')
+    state_data = pd.read_csv('./data/data.csv', encoding='latin-1')
 
     choropleth = folium.Choropleth(
         geo_data='bairros.geo.json',
@@ -195,7 +195,7 @@ map_radar = folium.Map(location=[-25.442027, -49.269582],
                        zoom_start=12)
 
 
-tabela = pd.read_csv("AllFullTable.csv", sep=";", low_memory=False)
+tabela = pd.read_csv("./data/AllFullTable.csv", sep=";", low_memory=False)
 
 drivers = (pd.Series.unique(tabela["DRIVER"])).astype(str)
 drivers = drivers.tolist()
@@ -502,7 +502,7 @@ st.altair_chart(bars)
 
 corGeral(resul)
 
-radares = pd.read_csv("radares.csv", sep=",")
+radares = pd.read_csv("./data/radares.csv", sep=",")
 for i, j in radares.iterrows():
     if 'LOMBADA' in j['Tipo']:
         longitude = float(j['Longitude'])

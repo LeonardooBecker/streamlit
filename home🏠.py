@@ -6,7 +6,7 @@ from branca.colormap import linear
 import json
 import math
 
-with open("style.css") as f:
+with open("./css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
     
 def converte(hCtb):
@@ -45,9 +45,9 @@ def corGeral(escolha, tabela):
     allBairros = pd.Series.unique(tabela["BAIRRO"])
     allBairros = allBairros.tolist()
 
-    arq = open('data.csv', 'w')
+    arq = open('./data/data.csv', 'w')
     arq.write("Bairros,Codigo,Pinta\n")
-    dfCodigo = pd.read_csv('codigoBairros.csv', sep=',')
+    dfCodigo = pd.read_csv('./data/codigoBairros.csv', sep=',')
 
     maxValue = 0
     for i in allBairros:
@@ -97,7 +97,7 @@ def corGeral(escolha, tabela):
 
     arq.close()
 
-    state_data = pd.read_csv('data.csv', encoding='latin-1')
+    state_data = pd.read_csv('./data/data.csv', encoding='latin-1')
 
     choropleth = folium.Choropleth(
         geo_data='bairros.geo.json',
@@ -188,11 +188,10 @@ def atualizaInfo(tabela, param):
     st.session_state[6] = ids
     st.session_state[7] = idades
 
-
 my_map = folium.Map(location=[-25.442027, -49.269582],
                     zoom_start=12)
 
-tabela = pd.read_csv("AllFullTable.csv", sep=";", low_memory=False)
+tabela = pd.read_csv("./data/AllFullTable.csv", sep=";", low_memory=False)
 
 drivers = (pd.Series.unique(tabela["DRIVER"])).astype(str)
 drivers = drivers.tolist()
@@ -251,6 +250,7 @@ else:
     idSelec = st.sidebar.selectbox('Viagem', ids)
 
 
+
 param = []
 param.append([0, driverSelec])
 param.append([1, bairroSelec])
@@ -294,7 +294,6 @@ if(st.session_state[6]!=ids):
     st.experimental_rerun()
 if(st.session_state[7]!=idades):
     st.experimental_rerun()
-
 
 if st.sidebar.button('Atualizar página'):
     st.session_state.clear()
