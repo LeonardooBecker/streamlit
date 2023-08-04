@@ -6,7 +6,7 @@ from branca.colormap import linear
 import json
 import math
 
-with open("./css/style.css") as f:
+with open("css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
     
 def converte(hCtb):
