@@ -6,6 +6,9 @@ from branca.colormap import linear
 import json
 import math
 
+
+#TESTE DE MUDANÇA DE BRANCH Q A PRINICIPIO N TA FUNCIONANDO
+
 with open("css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
     
