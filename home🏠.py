@@ -5,7 +5,8 @@ import folium
 from branca.colormap import linear
 import json
 import math
-
+from titulo import titulo
+from rodape import rodape
 
 #TESTE DE MUDANÇA DE BRANCH Q A PRINICIPIO N TA FUNCIONANDO
 
@@ -183,13 +184,13 @@ def atualizaInfo(tabela, param):
         ids.append("")
     ids.sort()
 
-    st.session_state[1] = drivers
-    st.session_state[2] = hCwb
-    st.session_state[3] = converte(hCtb)
-    st.session_state[4] = bairros
-    st.session_state[5] = cidades
-    st.session_state[6] = ids
-    st.session_state[7] = idades
+    st.session_state["drivers"] = drivers
+    st.session_state["hCwb"] = hCwb
+    st.session_state["hCtb"] = converte(hCtb)
+    st.session_state["bairros"] = bairros
+    st.session_state["cidades"] = cidades
+    st.session_state["ids"] = ids
+    st.session_state["idades"] = idades
 
 my_map = folium.Map(location=[-25.442027, -49.269582],
                     zoom_start=12)
@@ -227,7 +228,7 @@ ids.sort()
 
 hCtb=converte(hCtb)
 
-if 7 not in st.session_state:
+if "drivers" not in st.session_state:
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
     hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
@@ -237,19 +238,19 @@ if 7 not in st.session_state:
     idSelec = st.sidebar.selectbox('Viagem', ids)
 
 else:
-    idades = st.session_state[7]
+    idades = st.session_state["idades"]
     idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
-    hCwb = st.session_state[2]
+    hCwb = st.session_state["hCwb"]
     hCwbSelec = st.sidebar.selectbox('Hierarquia viária (Curitiba)', hCwb)
-    hCtb = st.session_state[3]
+    hCtb = st.session_state["hCtb"]
     hCtbSelec = desconverteSing(st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
-    bairros = st.session_state[4]
+    bairros = st.session_state["bairros"]
     bairroSelec = st.sidebar.selectbox('Bairro', bairros)
-    cidades = st.session_state[5]
+    cidades = st.session_state["cidades"]
     cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
-    drivers = st.session_state[1]
+    drivers = st.session_state["drivers"]
     driverSelec = st.sidebar.selectbox('Condutor', drivers)
-    ids = st.session_state[6]
+    ids = st.session_state["ids"]
     idSelec = st.sidebar.selectbox('Viagem', ids)
 
 
@@ -262,6 +263,13 @@ param.append([3, idadeSelec])
 param.append([4, hCwbSelec])
 param.append([5, hCtbSelec])
 param.append([6, idSelec])
+
+param
+
+teste = []
+teste.append({"driver":driverSelec})
+teste
+
 
 resul = tabela
 
@@ -283,19 +291,19 @@ for i in param:
 
 atualizaInfo(resul,param)
 
-if(st.session_state[1]!=drivers):
+if(st.session_state["drivers"]!=drivers):
     st.experimental_rerun()
-if(st.session_state[2]!=hCwb):
+if(st.session_state["hCwb"]!=hCwb):
     st.experimental_rerun()
-if(st.session_state[3]!=hCtb):
+if(st.session_state["hCtb"]!=hCtb):
     st.experimental_rerun()
-if(st.session_state[4]!=bairros):
+if(st.session_state["bairros"]!=bairros):
     st.experimental_rerun()
-if(st.session_state[5]!=cidades):
+if(st.session_state["cidades"]!=cidades):
     st.experimental_rerun()
-if(st.session_state[6]!=ids):
+if(st.session_state["ids"]!=ids):
     st.experimental_rerun()
-if(st.session_state[7]!=idades):
+if(st.session_state["idades"]!=idades):
     st.experimental_rerun()
 
 if st.sidebar.button('Atualizar página'):
@@ -304,28 +312,7 @@ if st.sidebar.button('Atualizar página'):
 
 ## Título da página
 
-st.markdown("""
-            <style>
-            .titulo {
-                display: flex;
-            }
-            #texto{
-                padding: 10px;
-            }
-            #logoNDS {
-                display: block;
-                width: 40%;
-                height: fit-content;
-                margin: auto;
-                padding: 15px;
-            }
-            </style>
-            <div class="titulo">
-                <h1 style="font-size:42px; text-align:center">Estudo Naturalístico de Direção Brasileiro</h1>
-                <img src='https://www.inf.ufpr.br/lbo21/images/logoBranca.png' id="logoNDS">
-            </div>
-            <hr>
-            """, unsafe_allow_html=True)
+titulo("Estudo Naturalístico de Direção Brasileiro")
 
 ##---------------------------------------------
 
@@ -399,93 +386,10 @@ if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
 if(escolha=="Percentual do tempo sob excesso de velocidade*"):
     st.subheader("Mapa de calor representando o percentual do tempo sob o excesso de velocidade")
 
-
-# if(escolha=="Frequência de uso do celular (usos/hora)"):
-#     usandoCelular=resul[(dfPick==1)]
-#     for linha, dados in usandoCelular.iterrows():
-#         longitude=float((dados[1]))
-#         latitude=float(dados[2])
-#         if not (math.isnan(longitude) or math.isnan(latitude)):
-#             folium.Circle([latitude, longitude], 3,
-#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
-
-
-# if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
-#     semCinto=(resul[(dfWsb==0)])            
-#     for linha, dados in semCinto.iterrows():
-#         longitude=float((dados[1]))
-#         latitude=float(dados[2])
-#         if not (math.isnan(longitude) or math.isnan(latitude)):
-#             folium.Circle([latitude, longitude], 3,
-#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
-
-# if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-#     # dfExcesso definido quando foi usado para caluclar o paramentro de percentual de excesso de velocidade ( nao houve alteracoes no dataframe )
-#     for linha, dados in dfExcesso.iterrows():
-#         longitude=float((dados[1]))
-#         latitude=float(dados[2])
-#         if not (math.isnan(longitude) or math.isnan(latitude)):
-#             folium.Circle([latitude, longitude], 3,
-#                     color='red', fill_color="red", fill_opacity=1).add_to(my_map)
-            
-
-# if(escolha=="Frequência de uso do celular (usos/hora)"):
-#     st.subheader("Pontos referentes aos locais onde houve utilização do celular")
-
-# if(escolha=="Percentual do tempo de não uso do cinto de segurança"):
-#     st.subheader("Pontos referentes aos locais onde não houve a utilização do cinto de segurança")
-
-# if(escolha=="Percentual do tempo sob excesso de velocidade*"):
-#     st.subheader("Pontos referentes aos locais onde houve o excesso de velocidade")
-
 folium_static(my_map)
 
 ## Rodapé da página
 
-st.markdown("""
-            <style>
-            .back
-            {
-                padding: 30px;
-                border-radius: 20px;
-                background-color: #c8c8c8;
-            }
-            #infos {
-                color: #353535;
-            }
-            #refs
-            {
-                color: #666666;
-                margin: 30px;
-            }
-            .images {
-                display: flex;
-                flex-wrap: wrap;
-            }
-            .images img {
-                width:30%;
-                padding: 20px;
-                flex: 1;
-                object-fit: contain; 
-            }
-            </style>
-            <hr>
-            <div class="back">
-                <div id="infos">
-                    <p style="margin:2px; font-size: 14px;">Desenvolvedor: Leonardo Becker de Oliveira <a href="mailto:lbo21@inf.ufpr.br"> lbo21@inf.ufpr.br </a></p>
-                    <p style="margin:2px; font-size: 14px;">Coordenador: Prof. Dr. Jorge Tiago Bastos <a href="mailto:jtbastos@ufpr.br"> jtbastos@ufpr.br </a></p>
-                    <p style="margin:2px; font-size: 14px;">Financiamento: Universidade Federal do Paraná, Conselho Nacional de Desenvolvimento Científico e Tecnológico, Observatório Nacional de Segurança Viária e Mobi 7 - Soluções para Mobilidade.</p>
-                    <p style="margin:2px; font-size: 14px;">Mais informações em <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">Estudo Naturalístico de Direção Brasileiro - CEPPUR-UFPR</a> (Link para este endereço: <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/</a> )</p>
-                </div>
-                <div id="refs">     
-                    <p style="font-size: 12px; margin:2px">* % do tempo sob excesso de velocidade em relação ao tempo de viagem com oportunidade de excesso de velocidade</p>
-                    <p style="font-size: 12px; margin:2px"> Para referenciar este conteúdo: OLIVEIRA, Leonardo Becker; BASTOS, Jorge Tiago. Estudo Naturalístico de Direção Brasileiro: Painel de visualização. Curitiba 2023. Disponível em: <a href="https://painelndsbr.streamlit.app">Streamlit</a>. Acesso em: dia mês. ano. </p>
-                </div>
-                <div class="images">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoUFPR.jpg">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoCNPQ.jpg">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoONSV.png">
-                </div>
-            </div>
-             """ , unsafe_allow_html=True
-            )
+rodape()
+
+##---------------------------------------------
