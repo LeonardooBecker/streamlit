@@ -1,3 +1,7 @@
+# Autor: Leonardo Becker de Oliveira
+# Contato: leonardobecker79@gmail.com
+# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+
 import streamlit as st
 
 def titulo(titulo):
