@@ -1,5 +1,8 @@
 {
     "python.analysis.extraPaths": [
         "./local_libs"
-    ]
+    ],
+    "pythonIndent.keepHangingBracketOnLine": false,
+    "pythonIndent.trimLinesWithOnlyWhitespace": true,
+    "pythonIndent.useTabOnHangingIndent": true
 }

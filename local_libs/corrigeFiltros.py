@@ -33,5 +33,5 @@ def preencheVetorFiltro(dicionario,tabela):
             vetorAuxiliar.append("")
         vetorAuxiliar.sort()
         if(chave=="HIERARQUIA_CTB"):
-            vetorAuxiliar=converte(vetorAuxiliar)
+            vetorAuxiliar=sorted(converte(vetorAuxiliar))
         st.session_state[chave] = vetorAuxiliar

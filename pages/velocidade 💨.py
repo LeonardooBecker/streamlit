@@ -1,369 +1,114 @@
 import pandas as pd
 import streamlit as st
-from streamlit_folium import folium_static
 import folium
-from matplotlib import pyplot as plt
-import plotly.express as px
 import altair as alt
-from branca.colormap import linear
-from branca.colormap import StepColormap
+
+
+from local_libs.alteraNomes import *
+from local_libs.calculaParametros import *
+from local_libs.preencheMapa import * 
+from local_libs.corrigeFiltros import *
+from local_libs.titulo import *
+from local_libs.rodape import *
+from local_libs.radaresMapa import *
 
 with open("./css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
 
-def transformaWeekday(weekdays):
-    vetor = []
-    for dia in weekdays:
-        if (dia == ""):
-            vetor.insert(0, dia)
-        if (dia == "Domingo"):
-            vetor.insert(1, dia)
-        if (dia == "Segunda-feira"):
-            vetor.insert(2, dia)
-        if (dia == "Terça-feira"):
-            vetor.insert(3, dia)
-        if (dia == "Quarta-feira"):
-            vetor.insert(4, dia)
-        if (dia == "Quinta-Feira"):
-            vetor.insert(5, dia)
-        if (dia == "Sexta-feira"):
-            vetor.insert(6, dia)
-        if (dia == "Sábado"):
-            vetor.insert(7, dia)
-    return vetor
+# Inicialização dos valores de session_state, utilizado durante todo o código
+def inicializaValores():
+    st.session_state["HIERARQUIA_CTB"] = [""]
+    st.session_state["WEEKDAY"]=[""]
+    st.session_state["SEXO"] = [""]
+    st.session_state["IDADE"] = [""]
+    st.session_state["BAIRRO"]=[""]
+    st.session_state["CIDADE"]=[""]
+    st.session_state["DRIVER"] = [""]
+    st.session_state["ID"] = [""]
+
+    st.session_state["HIERARQUIA_CTBSELECT"] = ""
+    st.session_state["WEEKDAYSELECT"]=""
+    st.session_state["SEXOSELECT"] = ""
+    st.session_state["IDADESELECT"] = ""
+    st.session_state["BAIRROSELECT"]=""
+    st.session_state["CIDADESELECT"]=""
+    st.session_state["DRIVERSELECT"] = ""
+    st.session_state["IDSELECT"] = ""
+
+    st.session_state["ESCOLHA"] = "Frequência de uso do celular (usos/hora)"
+    st.session_state["VELOCIDADE"]=True
 
 
-def converte(hCtb):
-    vetorNominal = []
-    for i in hCtb:
-        if i == "":
-            vetorNominal.append("")
-        elif i == "1":
-            vetorNominal.append("TRÂNSITO RÁPIDO")
-        elif i == "2":
-            vetorNominal.append("ARTERIAL")
-        elif i == "3":
-            vetorNominal.append("COLETORA")
-        elif i == "4":
-            vetorNominal.append("LOCAL")
-        else:
-            vetorNominal.append("NPI")
-    return vetorNominal
-
-
-def desconverteSing(hCtbSelec):
-    if (hCtbSelec == "TRÂNSITO RÁPIDO"):
-        return "1"
-    elif (hCtbSelec == "ARTERIAL"):
-        return "2"
-    elif (hCtbSelec == "COLETORA"):
-        return "3"
-    elif (hCtbSelec == "LOCAL"):
-        return "4"
-    elif (hCtbSelec == "NPI"):
-        return "NPI"
-    elif (hCtbSelec == ""):
-        return ""
-    else:
-        return hCtbSelec
-
-
-def atualizaInfo(tabela, param):
-    drivers = (pd.Series.unique(tabela["DRIVER"])).astype(str)
-    drivers = drivers.tolist()
-    if (param[0][1] == ""):
-        drivers.append("")
-    drivers.sort()
-    idades = (pd.Series.unique(tabela["IDADE"])).astype(str)
-    idades = idades.tolist()
-    if (param[3][1] == ""):
-        idades.append("")
-    idades.sort()
-    weekdays = (pd.Series.unique(tabela["WEEKDAY"])).astype(str)
-    weekdays = weekdays.tolist()
-    if (param[1][1] == ""):
-        weekdays.append("")
-    weekdays.sort()
-    bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str)
-    bairros = bairros.tolist()
-    if (param[2][1] == ""):
-        bairros.append("")
-    bairros.sort()
-    hCtb = (pd.Series.unique(tabela["HIERARQUIA_CTB"])).astype(str)
-    hCtb = hCtb.tolist()
-    if (param[5][1] == ""):
-        hCtb.append("")
-    hCtb.sort()
-    vsexo = (pd.Series.unique(tabela["SEXO"])).astype(str)
-    vsexo = vsexo.tolist()
-    if (param[4][1] == ""):
-        vsexo.append("")
-    vsexo.sort()
-    ids = (pd.Series.unique(tabela["ID"])).astype(str)
-    ids = ids.tolist()
-    if (param[6][1] == ""):
-        ids.append("")
-    ids.sort()
-    cidades = (pd.Series.unique(tabela["CIDADE"])).astype(str)
-    cidades = cidades.tolist()
-    if (param[7][1] == ""):
-        cidades.append("")
-    cidades.sort()
-
-    st.session_state[1] = drivers
-    st.session_state[2] = vsexo
-    st.session_state[3] = converte(hCtb)
-    st.session_state[4] = transformaWeekday(weekdays)
-    st.session_state[5] = bairros
-    st.session_state[6] = ids
-    st.session_state[7] = idades
-    st.session_state[8] = cidades
-
-
-def corGeral(tabela):
-    allBairros = pd.Series.unique(tabela["BAIRRO"])
-    allBairros = allBairros.tolist()
-
-    arq = open('./data/data.csv', 'w')
-    arq.write("Bairros,Codigo,Pinta\n")
-    dfCodigo = pd.read_csv('./data/codigoBairros.csv', sep=',')
-
-    maxValue = 0
-    for i in allBairros:
-
-        if (i != "NPI"):
-            df = tabela[tabela["BAIRRO"] == i]
-
-            linedf = dfCodigo[dfCodigo["BAIRRO"] == i]
-            codigo = int(linedf["CODIGO"].iloc[0])
-
-            dfVelocidade = df["SPD_KMH"]
-            dfLimite = df["LIMITE_VEL"]
-            tempoExcesso = len(
-                df[(dfVelocidade >= dfLimite) & (dfLimite != 0)])
-            tempoCorrigido = len(
-                df[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)])
-            if (tempoCorrigido != 0):
-                pcExcesso = (tempoExcesso/tempoCorrigido)*10000
-            else:
-                pcExcesso = 0
-            if (pcExcesso > maxValue):
-                maxValue = pcExcesso
-            line = str(i)+','+str(codigo)+','+str(int(pcExcesso))+'\n'
-            arq.write(line)
-
-    arq.close()
-
-    state_data = pd.read_csv('./data/data.csv', encoding='latin-1')
-
-    choropleth = folium.Choropleth(
-        geo_data='./data/bairros.geo.json',
-        data=state_data,
-        columns=['Codigo', 'Pinta'],
-        key_on='feature.properties.codigo',
-        fill_color="YlOrRd",
-        fill_opacity=0.5,
-        nan_fill_opacity=0,
-        line_color="Gray",
-        line_opacity=0.4
-    )
-    choropleth.geojson.add_to(my_map)
-
-    state_data_indexed = state_data.set_index('Codigo')
-
-    for s in choropleth.geojson.data['features']:
-        if ((s['properties']['codigo']) in state_data['Codigo'].values):
-            valor = s['properties']['codigo']
-            s['properties']['valor'] = int(
-                state_data_indexed.loc[valor, "Pinta"])/100
-        else:
-            s['properties']['valor'] = 0
-
-    folium.GeoJsonTooltip(['nome', 'valor']).add_to(choropleth.geojson)
-
-    colormap = linear.YlOrRd_09.scale(0, maxValue/100)
-    colormap.caption = "Percentual do tempo sob excesso de velocidade"
-
-    colormap.add_to(my_map)
-
-
-# INICIO
 my_map = folium.Map(location=[-25.442027, -49.269582],
-                    zoom_start=12, tiles='CartoDB positron')
+                        zoom_start=12,tiles='CartoDB positron')
+
 map_radar = folium.Map(location=[-25.442027, -49.269582],
                        zoom_start=12)
 
 
 tabela = pd.read_csv("./data/AllFullTable.csv", sep=";", low_memory=False)
 
-drivers = (pd.Series.unique(tabela["DRIVER"])).astype(str)
-drivers = drivers.tolist()
-drivers.append("")
-drivers.sort()
-idades = (pd.Series.unique(tabela["IDADE"])).astype(str)
-idades = idades.tolist()
-idades.append("")
-idades.sort()
-weekdays = (pd.Series.unique(tabela["WEEKDAY"])).astype(str)
-weekdays = weekdays.tolist()
-weekdays.append("")
-weekdays.sort()
-bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str)
-bairros = bairros.tolist()
-bairros.append("")
-bairros.sort()
-hCtb = (pd.Series.unique(tabela["HIERARQUIA_CTB"])).astype(str)
-hCtb = hCtb.tolist()
-hCtb.append("")
-hCtb.sort()
-vsexo = (pd.Series.unique(tabela["SEXO"])).astype(str)
-vsexo = vsexo.tolist()
-vsexo.append("")
-vsexo.sort()
-ids = (pd.Series.unique(tabela["ID"])).astype(str)
-ids = ids.tolist()
-ids.append("")
-ids.sort()
-cidades = (pd.Series.unique(tabela["CIDADE"])).astype(str)
-cidades = cidades.tolist()
-cidades.append("")
-cidades.sort()
 
-weekdays = transformaWeekday(weekdays)
-hCtb = converte(hCtb)
-
-if 8 not in st.session_state:
-    hCtbSelec = desconverteSing(
-        st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
-    weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
-    sexoSelec = st.sidebar.radio('Sexo', vsexo)
-    idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
-    bairroSelec = st.sidebar.selectbox('Bairro', bairros)
-    cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
-    driverSelec = st.sidebar.selectbox('Condutor', drivers)
-    idSelec = st.sidebar.selectbox('Viagem', ids)
-
-else:
-    hCtb = st.session_state[3]
-    hCtbSelec = desconverteSing(
-        st.sidebar.selectbox('Hierarquia viária (CTB)', hCtb))
-    weekdays = st.session_state[4]
-    weekdaySelec = st.sidebar.selectbox('Dia da semana', weekdays)
-    vsexo = st.session_state[2]
-    sexoSelec = st.sidebar.radio('Sexo', vsexo)
-    idades = st.session_state[7]
-    idadeSelec = st.sidebar.selectbox('Faixa etária do condutor', idades)
-    bairros = st.session_state[5]
-    bairroSelec = st.sidebar.selectbox('Bairro', bairros)
-    cidades = st.session_state[8]
-    cidadeSelec = st.sidebar.selectbox('Cidade', cidades)
-    drivers = st.session_state[1]
-    driverSelec = st.sidebar.selectbox('Condutor', drivers)
-    ids = st.session_state[6]
-    idSelec = st.sidebar.selectbox('Viagem', ids)
-
-param = []
-param.append([0, driverSelec])
-param.append([1, weekdaySelec])
-param.append([2, bairroSelec])
-param.append([3, idadeSelec])
-param.append([4, sexoSelec])
-param.append([5, hCtbSelec])
-param.append([6, idSelec])
-param.append([7, cidadeSelec])
-
-resul = tabela
-
-for i in param:
-    if (i[0] == 0 and (i[1] != "")):
-        resul = resul[resul["DRIVER"] == i[1]]
-    if (i[0] == 1 and (i[1] != "")):
-        resul = resul[resul["WEEKDAY"] == i[1]]
-    if (i[0] == 2 and (i[1] != "")):
-        resul = resul[resul["BAIRRO"] == i[1]]
-    if (i[0] == 3 and (i[1] != "")):
-        resul = resul[resul["IDADE"] == i[1]]
-    if (i[0] == 4 and (i[1] != "")):
-        resul = resul[resul["SEXO"] == i[1]]
-    if (i[0] == 5 and (i[1] != "")):
-        resul = resul[resul["HIERARQUIA_CTB"] == i[1]]
-    if (i[0] == 6 and (i[1] != "")):
-        resul = resul[resul["ID"] == i[1]]
-    if (i[0] == 7 and (i[1] != "")):
-        resul = resul[resul["CIDADE"] == i[1]]
-
-atualizaInfo(resul, param)
-
-if (st.session_state[1] != drivers):
-    st.experimental_rerun()
-if (st.session_state[2] != vsexo):
-    st.experimental_rerun()
-if (st.session_state[3] != hCtb):
-    st.experimental_rerun()
-if (st.session_state[4] != weekdays):
-    st.experimental_rerun()
-if (st.session_state[5] != bairros):
-    st.experimental_rerun()
-if (st.session_state[6] != ids):
-    st.experimental_rerun()
-if (st.session_state[7] != idades):
-    st.experimental_rerun()
-if (st.session_state[8] != cidades):
-    st.experimental_rerun()
+# Inicialização dos valores
+if "VELOCIDADE" not in st.session_state:
+    inicializaValores()
 
 
+# Dicionario { chave : valor } contendo os parametros de interesse
+dicionario={
+    "HIERARQUIA_CTB":st.session_state["HIERARQUIA_CTBSELECT"],
+    "WEEKDAY":st.session_state["WEEKDAYSELECT"],
+    "SEXO":st.session_state["SEXOSELECT"],
+    "IDADE":st.session_state["IDADESELECT"],
+    "BAIRRO":st.session_state["BAIRROSELECT"],
+    "CIDADE":st.session_state["CIDADESELECT"],
+    "DRIVER":st.session_state["DRIVERSELECT"],
+    "ID":st.session_state["IDSELECT"]
+    }
+
+preencheVetorFiltro(dicionario,tabela)
+
+# Painel lateral - cada linha corresponde a um filtro possível
+for chave in dicionario:
+    chaveSelect=chave+"SELECT"
+    if(chave=="SEXO"):
+        st.session_state[chaveSelect]=st.sidebar.radio(formataNome(chave),st.session_state[chave])
+    elif(chave=="HIERARQUIA_CTB"):
+        st.session_state[chaveSelect]=desconverteSing(st.sidebar.selectbox(formataNome(chave),st.session_state[chave]))
+    elif(chave=="WEEKDAY"):
+        st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),transformaWeekday(st.session_state[chave]))
+    else:
+        st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),st.session_state[chave])
+
+
+# Atualização extra necessária para deixar os parâmetros do filtro de acordo
+for chave in dicionario:
+    if(dicionario[chave]!=st.session_state[chave+"SELECT"]):
+        st.experimental_rerun()
+
+# Botão de atualização da página
 if st.sidebar.button('Atualizar página'):
     st.session_state.clear()
     st.experimental_rerun()
 
 
+
 ## Título da página
 
-st.markdown("""
-            <style>
-            .titulo {
-                display: flex;
-            }
-            #texto{
-                padding: 10px;
-            }
-            #logoNDS {
-                display: block;
-                width: 40%;
-                height: fit-content;
-                margin: auto;
-                padding: 15px;
-            }
-            </style>
-            <div class="titulo">
-                <h1 style="font-size:32px; text-align:center">Estudo Naturalístico de Direção Brasileiro - Indicadores sobre excesso de velocidade</h1>
-                <img src='https://www.inf.ufpr.br/lbo21/images/logoBranca.png' id="logoNDS">
-            </div>
-            <hr>
-            """, unsafe_allow_html=True)
+titulo("Estudo Naturalístico de Direção Brasileiro - Indicadores sobre excesso de velocidade")
 
-##---------------------------------------------
+#---------------------------------------------
 
+# Cálculo e apresentaçao dos parâmetros na box superior
 
-dfValid = resul["VALID_TIME"].astype(int)
-tempoValidoEspecifico = (dfValid.sum(axis=0))
+resul=atualizaTabela(dicionario,tabela)
 
-dfVelocidade = resul["SPD_KMH"]
-dfLimite = resul["LIMITE_VEL"]
+tempoValido=calculaTempoValido(resul)
 
-dfExcesso = resul[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
-tempoExcesso = len(dfExcesso)
-percentualExcesso = round((tempoExcesso/tempoValidoEspecifico*100), 2)
-
-dfCorrigido = resul[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
-tempoCorrigido = len(dfCorrigido)
-percentualOportunidade = round((tempoCorrigido/tempoValidoEspecifico*100), 2)
-
-if (tempoCorrigido != 0):
-    excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
-else:
-    excessoCorrigido = 0
+percentualExcesso = calculaPercentualExcesso(resul,tempoValido)
+percentualOportunidade=calculaOportunidadeExcesso(resul,tempoValido)
+percentualExcessoCorrigido = calculaPercentualExcessoCorrigido(resul)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -374,208 +119,97 @@ with col2:
         percentualOportunidade)+"%")
 with col3:
     st.metric("Percentual do tempo sob excesso de velocidade em relação ao tempo de viagem*",
-              str(excessoCorrigido)+"%")
+              str(percentualExcessoCorrigido)+"%")
+    
+#---------------------------------------------
 
+# Gráfico de barras - Cidades
 
-cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str)
-cidades = cidades.tolist()
+cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str).tolist()
 percentCidades = []
 cidadesOfc = []
-
-for i in cidades:
-    dfCidade = resul[resul["CIDADE"] == i]
-    dfValid = dfCidade["VALID_TIME"].astype(int)
-    tempoValidoEspecifico = (dfValid.sum(axis=0))
-
-    dfVelocidade = dfCidade["SPD_KMH"]
-    dfLimite = dfCidade["LIMITE_VEL"]
-
-    dfExcesso = dfCidade[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
-    tempoExcesso = len(dfExcesso)
-
-    dfCorrigido = dfCidade[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
-    tempoCorrigido = len(dfCorrigido)
-
-    if (tempoCorrigido != 0):
-        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
-    else:
-        excessoCorrigido = 0
-
+for cidade in cidades:
+    dfCidade = resul[resul["CIDADE"] == cidade]
+    excessoCorrigido=calculaPercentualExcessoCorrigido(dfCidade)
     if (excessoCorrigido > 0):
         percentCidades.append(excessoCorrigido)
-        cidadesOfc.append(i)
+        cidadesOfc.append(cidade)
 
 
-data = {"CIDADE": cidadesOfc, "PERCENTUAL": percentCidades}
+data = {"Cidade": cidadesOfc, "Percentual": percentCidades}
 new_df = pd.DataFrame(data)
-dfCidade = new_df.sort_values(["PERCENTUAL"])
+dfCidade = new_df.sort_values(["Percentual"])
 
 st.subheader("Percentual do tempo sob excesso de velocidade por cidade*")
 bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
-    x='PERCENTUAL',
-    y=alt.Y("CIDADE", sort='x')
+    x='Percentual',
+    y=alt.Y("Cidade", sort='x')
 )
 st.altair_chart(bars)
 
-bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str)
-bairros = bairros.tolist()
+#---------------------------------------------
 
+# Gráfico de barras - Bairros
+
+bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str).tolist()
 percentBairros = []
 bairrosOfc = []
 
-for i in bairros:
-    dfBairro = resul[resul["BAIRRO"] == i]
-    dfValid = dfBairro["VALID_TIME"].astype(int)
-    tempoValidoEspecifico = (dfValid.sum(axis=0))
-
-    dfVelocidade = dfBairro["SPD_KMH"]
-    dfLimite = dfBairro["LIMITE_VEL"]
-
-    dfExcesso = dfBairro[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
-    tempoExcesso = len(dfExcesso)
-
-    dfCorrigido = dfBairro[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
-    tempoCorrigido = len(dfCorrigido)
-
-    if (tempoCorrigido != 0):
-        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
-    else:
-        excessoCorrigido = 0
-
+for bairro in bairros:
+    dfBairro = resul[resul["BAIRRO"] == bairro]
+    excessoCorrigido=calculaPercentualExcessoCorrigido(dfBairro)
     if (excessoCorrigido > 0):
         percentBairros.append(excessoCorrigido)
-        bairrosOfc.append(i)
+        bairrosOfc.append(bairro)
 
-
-data = {"BAIRRO": bairrosOfc, "PERCENTUAL": percentBairros}
+data = {"Bairro": bairrosOfc, "Percentual": percentBairros}
 new_df = pd.DataFrame(data)
-dfBairro = new_df.sort_values(["PERCENTUAL"])
+dfBairro = new_df.sort_values(["Percentual"])
 
 st.subheader("Percentual do tempo sob excesso de velocidade por bairro de Curitiba*")
 bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
-    x='PERCENTUAL',
-    y=alt.Y("BAIRRO", sort='x')
+    x='Percentual',
+    y=alt.Y("Bairro", sort='x')
 )
 st.altair_chart(bars)
 
+#---------------------------------------------
 
-limites = ((pd.Series.unique(tabela["LIMITE_VEL"]))).astype(str)
-limites = limites.tolist()
-
+# Gráfico de barras - Limite de velocidade
+limites = ((pd.Series.unique(tabela["LIMITE_VEL"]))).astype(str).tolist()
 percentVia = []
 limiteVias = []
 
-for i in limites:
-    dfLm = resul[resul["LIMITE_VEL"] == int(i)]
-    dfValid = dfLm["VALID_TIME"].astype(int)
-    tempoValidoEspecifico = (dfValid.sum(axis=0))
-
-    dfVelocidade = dfLm["SPD_KMH"]
-    dfLimite = dfLm["LIMITE_VEL"]
-
-    dfExcesso = dfLm[(dfVelocidade >= dfLimite) & (dfLimite != 0)]
-    tempoExcesso = len(dfExcesso)
-
-    dfCorrigido = dfLm[(dfVelocidade >= (dfLimite-10)) & (dfLimite != 0)]
-    tempoCorrigido = len(dfCorrigido)
-
-    if (tempoCorrigido != 0):
-        excessoCorrigido = round((tempoExcesso/tempoCorrigido*100), 2)
-    else:
-        excessoCorrigido = 0
-
+for limite in limites:
+    dfLm = resul[resul["LIMITE_VEL"] == int(limite)]
+    excessoCorrigido=calculaPercentualExcessoCorrigido(dfLm)
     if (excessoCorrigido > 0):
         percentVia.append(excessoCorrigido)
-        limiteVias.append(i)
+        limiteVias.append(limite)
 
-
-data = {"LIMITE VIA": limiteVias, "PERCENTUAL": percentVia}
+data = {"Limite da via": limiteVias, "Percentual": percentVia}
 new_df = pd.DataFrame(data)
-dfLimite = new_df.sort_values(["PERCENTUAL"])
+dfLimite = new_df.sort_values(["Percentual"])
 
 st.subheader("Percentual do tempo sob excesso de velocidade segundo limite de velocidade regulamentar da via*")
 bars = alt.Chart(dfLimite).mark_bar(width=20).encode(
-    x='PERCENTUAL',
-    y=alt.Y("LIMITE VIA", sort='-x')
+    x='Percentual',
+    y=alt.Y("Limite da via", sort='-x')
 )
 st.altair_chart(bars)
 
-corGeral(resul)
+#---------------------------------------------
 
-radares = pd.read_csv("./data/radares.csv", sep=",")
-for i, j in radares.iterrows():
-    if 'LOMBADA' in j['Tipo']:
-        longitude = float(j['Longitude'])
-        latitude = float(j['Latitude'])
-        folium.Circle([latitude, longitude], 15,
-                      color='blue', fill_color="blue", fill_opacity=0.7).add_to(map_radar)
-    elif 'RADAR' in j['Tipo']:
-        longitude = float(j['Longitude'])
-        latitude = float(j['Latitude'])
-        folium.Circle([latitude, longitude], 15,
-                      color='red', fill_color="red", fill_opacity=0.7).add_to(map_radar)
 
-st.subheader("Percentual do tempo sob excesso de velocidade*")
-folium_static(my_map)
+# Coloração e inserção do mapa inferior
 
-st.subheader("Localização dos dispositivos de fiscalização eletrônica de velocidade")
+coloreMapa("Percentual do tempo sob excesso de velocidade*",resul,my_map)
+insereMapa("Percentual do tempo sob excesso de velocidade*",my_map)
 
-col1, col2 = st.columns(2)
-with col1:
-    texto_html = f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:red;margin-right:5px;"></span>RADAR - CONSILUX'
-    st.markdown(texto_html, unsafe_allow_html=True)
-with col2:
-    texto_html = f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:blue;margin-right:5px;"></span>LOMBADA - CONSILUX'
-    st.markdown(texto_html, unsafe_allow_html=True)
+#---------------------------------------------
 
-folium_static(map_radar)
+insereMapaRadar(map_radar)
 
 ## Rodapé da página
 
-st.markdown("""
-            <style>
-            .back
-            {
-                padding: 30px;
-                border-radius: 20px;
-                background-color: #c8c8c8;
-            }
-            #infos {
-                color: #353535;
-            }
-            #refs
-            {
-                color: #666666;
-                margin: 30px;
-            }
-            .images {
-                display: flex;
-                flex-wrap: wrap;
-            }
-            .images img {
-                width:30%;
-                padding: 20px;
-                flex: 1;
-                object-fit: contain; 
-            }
-            </style>
-            <hr>
-            <div class="back">
-                <div id="infos">
-                    <p style="margin:2px; font-size: 14px;">Desenvolvedor: Leonardo Becker de Oliveira <a href="mailto:lbo21@inf.ufpr.br"> lbo21@inf.ufpr.br </a></p>
-                    <p style="margin:2px; font-size: 14px;">Coordenador: Prof. Dr. Jorge Tiago Bastos <a href="mailto:jtbastos@ufpr.br"> jtbastos@ufpr.br </a></p>
-                    <p style="margin:2px; font-size: 14px;">Financiamento: Universidade Federal do Paraná, Conselho Nacional de Desenvolvimento Científico e Tecnológico, Observatório Nacional de Segurança Viária e Mobi 7 - Soluções para Mobilidade.</p>
-                    <p style="margin:2px; font-size: 14px;">Mais informações em <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">Estudo Naturalístico de Direção Brasileiro - CEPPUR-UFPR</a> (Link para este endereço: <a href="http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/">http://www.tecnologia.ufpr.br/portal/ceppur/estudo-naturalistico-de-direcao-brasileiro/</a> )</p>
-                </div>
-                <div id="refs">     
-                    <p style="font-size: 12px; margin:2px">* % do tempo sob excesso de velocidade em relação ao tempo de viagem com oportunidade de excesso de velocidade</p>
-                    <p style="font-size: 12px; margin:2px"> Para referenciar este conteúdo: OLIVEIRA, Leonardo Becker; BASTOS, Jorge Tiago. Estudo Naturalístico de Direção Brasileiro: Painel de visualização. Curitiba 2023. Disponível em: <a href="https://painelndsbr.streamlit.app">Streamlit</a>. Acesso em: dia mês. ano. </p>
-                </div>
-                <div class="images">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoUFPR.jpg">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoCNPQ.jpg">
-                    <img src="https://www.inf.ufpr.br/lbo21/images/logoONSV.png">
-                </div>
-            </div>
-             """ , unsafe_allow_html=True
-            )
+rodape()

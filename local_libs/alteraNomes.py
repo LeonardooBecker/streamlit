@@ -51,5 +51,91 @@ def formataNome(keyName):
         return "Hierarquia viária (CTB)"
     elif(keyName=="ID"):
         return "Viagem"
+    elif(keyName=="SEXO"):
+        return "Sexo"
+    elif(keyName=="CATEGORIA"):
+        return "Categoria"
+    elif(keyName=="WEEKDAY"):
+        return "Dia da semana"
+    elif(keyName=="ACTION"):
+        return "Tipo de uso"
     else:
         return ""
+    
+
+def transformaWeekday(weekdays):
+    vetor=[]
+    for dia in weekdays:
+        if(dia==""):
+            vetor.insert(0,dia)
+        if(dia=="Domingo"):
+            vetor.insert(1,dia)
+        if(dia=="Segunda-feira"):
+            vetor.insert(2,dia)
+        if(dia=="Terça-feira"):
+            vetor.insert(3,dia)
+        if(dia=="Quarta-feira"):
+            vetor.insert(4,dia)
+        if(dia=="Quinta-Feira"):
+            vetor.insert(5,dia)
+        if(dia=="Sexta-feira"):
+            vetor.insert(6,dia)
+        if(dia=="Sábado"):
+            vetor.insert(7,dia)
+    return vetor
+
+def tradutorEnPt(word):
+    if(word=="CHECKING/BROWSING"):
+        return "CONFERINDO/NAVEGANDO"
+    if(word=="ON-HOLDER"):
+        return "USO NO SUPORTE"
+    if(word=="HOLDING"):
+        return "SEGURANDO"
+    if(word=="TEXTING"):
+        return "ENVIANDO MENSAGEM"
+    if(word=="CALLING/VOICE MESSAGE"):
+        return "LIGAÇÃO/MENSAGEM DE VOZ"
+    if(word=="OTHER"):
+        return "OUTROS"     
+    if(word=="NPI"):
+        return "NPI"
+    return word
+
+def tradutorPtEn(word):
+    if(word=="CONFERINDO/NAVEGANDO"):
+        return "CHECKING/BROWSING"
+    elif(word=="USO NO SUPORTE"):
+        return "ON-HOLDER"
+    elif(word=="SEGURANDO"):
+        return "HOLDING"
+    elif(word=="ENVIANDO MENSAGEM"):
+        return "TEXTING"
+    elif(word=="LIGAÇÃO/MENSAGEM DE VOZ"):
+        return "CALLING/VOICE MESSAGE"
+    elif(word=="OUTROS"):
+        return "OTHER"  
+    elif(word=="NPI"):
+        return "NPI"
+    return word
+
+
+def traduzVetor(usos):
+    vetorTraduzido=[]
+    for word in usos:
+        if(word==""):
+            vetorTraduzido.append("")
+        elif(word=="CHECKING/BROWSING"):
+            vetorTraduzido.append("CONFERINDO/NAVEGANDO")
+        elif(word=="ON-HOLDER"):
+            vetorTraduzido.append("USO NO SUPORTE")
+        elif(word=="HOLDING"):
+            vetorTraduzido.append("SEGURANDO")
+        elif(word=="TEXTING"):
+            vetorTraduzido.append("ENVIANDO MENSAGEM")
+        elif(word=="CALLING/VOICE MESSAGE"):
+            vetorTraduzido.append("LIGAÇÃO/MENSAGEM DE VOZ")
+        elif(word=="OTHER"):
+            vetorTraduzido.append("OUTROS")
+        elif(word=="NPI"):
+            vetorTraduzido.append("NPI")
+    return sorted(vetorTraduzido)

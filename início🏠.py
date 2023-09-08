@@ -3,22 +3,30 @@
 # Última atualização: 08/09/2023
 # Descrição: Painel de visualização dos dados do Estudo Naturalístico de Direção Brasileiro
 # Link para o painel: https://painelndsbr.streamlit.app
-# Link para o repositório: 
+# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+
 
 # Importação dos módulos
+
 import streamlit as st
 
 import sys
-sys.path.append("./local_libs")
-
+sys.path.append('./local_libs')
 from alteraNomes import *
 from calculaParametros import *
-from preencheMapa import * 
+from preencheMapa import *
 from corrigeFiltros import *
 from titulo import *
 from rodape import *
 
-# Configuração da página
+# from local_libs.alteraNomes import *
+# from local_libs.calculaParametros import *
+# from local_libs.preencheMapa import * 
+# from local_libs.corrigeFiltros import *
+# from local_libs.titulo import *
+# from local_libs.rodape import *
+
+# Importação do CSS
 with open("css/style.css") as f:
     st.markdown(f"<style>{f.read()}<style>", unsafe_allow_html=True)
 
@@ -42,7 +50,7 @@ def inicializaValores():
     st.session_state["IDSELECT"] = ""
 
     st.session_state["ESCOLHA"] = "Frequência de uso do celular (usos/hora)"
-
+    st.session_state["INICIO"]=True
 
 
 def main():
@@ -54,7 +62,7 @@ def main():
 
 
     # Inicialização dos valores
-    if "DRIVER" not in st.session_state:
+    if "INICIO" not in st.session_state:
         inicializaValores()
 
 
@@ -96,7 +104,6 @@ def main():
     titulo("Estudo Naturalístico de Direção Brasileiro")
 
     #---------------------------------------------
-
     # Cálculo e apresentaçao dos parâmetros na box superior
 
     tabelaFiltrada=atualizaTabela(dicionario,tabela)
@@ -107,7 +114,7 @@ def main():
 
     percentWsb=calculaPercentWSB(tabelaFiltrada,tempoValido)
 
-    pcExcesso=calculaPercentualExcesso(tabelaFiltrada)
+    pcExcesso=calculaPercentualExcessoCorrigido(tabelaFiltrada)
 
     col1, col2, col3, col4= st.columns(4)
 
