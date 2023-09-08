@@ -1,15 +1,16 @@
-# Autor: Leonardo Becker de Oliveira
-# Contato: leonardobecker79@gmail.com
-# Última atualização: 08/09/2023
-# Descrição: Painel de visualização dos dados do Estudo Naturalístico de Direção Brasileiro
-# Link para o painel: https://painelndsbr.streamlit.app
-# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
 
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Última atualização: 08/09/2023
+    Descrição: Painel de visualização dos dados do Estudo Naturalístico de Direção Brasileiro
+    Link para o painel: https://painelndsbr.streamlit.app
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+
+"""
 
 # Importação dos módulos
-
 import streamlit as st
-
 import sys
 sys.path.append('./local_libs')
 from alteraNomes import *
@@ -18,13 +19,6 @@ from preencheMapa import *
 from corrigeFiltros import *
 from titulo import *
 from rodape import *
-
-# from local_libs.alteraNomes import *
-# from local_libs.calculaParametros import *
-# from local_libs.preencheMapa import * 
-# from local_libs.corrigeFiltros import *
-# from local_libs.titulo import *
-# from local_libs.rodape import *
 
 # Importação do CSS
 with open("css/style.css") as f:
@@ -104,6 +98,9 @@ def main():
     titulo("Estudo Naturalístico de Direção Brasileiro")
 
     #---------------------------------------------
+
+    separaConteudo()
+
     # Cálculo e apresentaçao dos parâmetros na box superior
 
     tabelaFiltrada=atualizaTabela(dicionario,tabela)
@@ -128,18 +125,18 @@ def main():
         st.metric("Tempo de viagem (h)",round((tempoValido/3600),2))
 
     #---------------------------------------------
-
-
+    separaConteudo()
+    # Coloração e inserção do mapa inferior assim como as opções de visualização disponível
+    
     options=["Frequência de uso do celular (usos/hora)","Percentual do tempo de não uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
 
-    # Botão de seleção
-    st.session_state["ESCOLHA"] = st.selectbox("",options, index=options.index(st.session_state["ESCOLHA"]))
+    st.session_state["ESCOLHA"] = st.selectbox("Selecione o parâmetro para ser preenchido o mapa:",options, index=options.index(st.session_state["ESCOLHA"]))
 
-    # Coloração e inserção do mapa
     coloreMapa(st.session_state["ESCOLHA"],tabelaFiltrada,my_map)
-    
     insereMapa(st.session_state["ESCOLHA"],my_map)
 
+    #---------------------------------------------
+    separaConteudo()
     ## Rodapé da página
 
     rodape()

@@ -1,6 +1,8 @@
-# Autor: Leonardo Becker de Oliveira
-# Contato: leonardobecker79@gmail.com
-# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
 
 import pandas as pd
 import streamlit as st

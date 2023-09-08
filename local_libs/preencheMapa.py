@@ -1,14 +1,16 @@
-# Autor: Leonardo Becker de Oliveira
-# Contato: leonardobecker79@gmail.com
-# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
 
 import pandas as pd
-from calculaParametros import *
 from branca.colormap import linear
 from streamlit_folium import folium_static
 import folium
 import streamlit as st
 
+from calculaParametros import *
 
 # Preenche no arquivo a frequencia de uso do celular por hora de acordo com o bairro e seu respectivo codigo
 def OptFrequenciaCelular(arq, bairro, codigo, df, maxValue):
@@ -156,6 +158,6 @@ def insereMapa(escolha, my_map):
         st.subheader("Mapa de calor representando o percentual do tempo sob o excesso de velocidade*")
         
     if (escolha == "Percentual do uso de celular"):
-        st.subheader("Percentual do tempo de viagem usando o celular segundo bairro de Curitiba (usos/h)")
+        st.subheader("Percentual do tempo de viagem usando o celular segundo bairro de Curitiba")
 
     folium_static(my_map)

@@ -1,6 +1,8 @@
-# Autor: Leonardo Becker de Oliveira
-# Contato: leonardobecker79@gmail.com
-# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
 
 import streamlit as st
 
@@ -32,7 +34,6 @@ def rodape():
                 object-fit: contain; 
             }
             </style>
-            <hr>
             <div class="back">
                 <div id="infos">
                     <p style="margin:2px; font-size: 14px;">Desenvolvedor: Leonardo Becker de Oliveira <a href="mailto:lbo21@inf.ufpr.br"> lbo21@inf.ufpr.br </a></p>

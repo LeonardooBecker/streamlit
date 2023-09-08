@@ -1,6 +1,8 @@
-# Autor: Leonardo Becker de Oliveira
-# Contato: leonardobecker79@gmail.com
-# Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+"""
 
 # Converte os nomes das colunas do csv principal para nomes mais amigáveis para o usuário ( os utilizados na interface lateral )
 def converte(hCtb):

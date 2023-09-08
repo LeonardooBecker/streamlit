@@ -1,3 +1,14 @@
+"""
+
+    Autor: Leonardo Becker de Oliveira
+    Contato: leonardobecker79@gmail.com
+    Última atualização: 08/09/2023
+    Descrição: Painel de visualização dos dados do Estudo Naturalístico de Direção Brasileiro
+    Link para o painel: https://painelndsbr.streamlit.app
+    Link para o repositório: https://github.com/LeonardooBecker/streamlit
+
+"""
+
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -40,171 +51,169 @@ def inicializaValores():
     st.session_state["CELULAR"]=True
 
 
-my_map = folium.Map(location=[-25.442027, -49.269582],
-                        zoom_start=12,tiles='CartoDB positron')
 
-tabela = pd.read_csv("./data/AllFullTable.csv", sep=";", low_memory=False)
+def main():
+    my_map = folium.Map(location=[-25.442027, -49.269582],
+                            zoom_start=12,tiles='CartoDB positron')
 
+    tabela = pd.read_csv("./data/AllFullTable.csv", sep=";", low_memory=False)
 
-# Inicialização dos valores
-if "CELULAR" not in st.session_state:
-    inicializaValores()
+    # Inicialização dos valores
+    if "CELULAR" not in st.session_state:
+        inicializaValores()
 
+    # Dicionario { chave : valor } contendo os parametros de interesse
+    dicionario={
+        "IDADE":st.session_state["IDADESELECT"],
+        "SEXO":st.session_state["SEXOSELECT"],
+        "CATEGORIA":st.session_state["CATEGORIASELECT"],
+        "HIERARQUIA_CTB":st.session_state["HIERARQUIA_CTBSELECT"],
+        "WEEKDAY":st.session_state["WEEKDAYSELECT"],
+        "ACTION":st.session_state["ACTIONSELECT"],
+        "DRIVER":st.session_state["DRIVERSELECT"],
+        "ID":st.session_state["IDSELECT"]
+        }
 
-# Dicionario { chave : valor } contendo os parametros de interesse
-dicionario={
-    "IDADE":st.session_state["IDADESELECT"],
-    "SEXO":st.session_state["SEXOSELECT"],
-    "CATEGORIA":st.session_state["CATEGORIASELECT"],
-    "HIERARQUIA_CTB":st.session_state["HIERARQUIA_CTBSELECT"],
-    "WEEKDAY":st.session_state["WEEKDAYSELECT"],
-    "ACTION":st.session_state["ACTIONSELECT"],
-    "DRIVER":st.session_state["DRIVERSELECT"],
-    "ID":st.session_state["IDSELECT"]
-    }
+    preencheVetorFiltro(dicionario,tabela)
 
-preencheVetorFiltro(dicionario,tabela)
+    # Painel lateral - cada linha corresponde a um filtro possível
+    for chave in dicionario:
+        chaveSelect=chave+"SELECT"
+        if(chave=="SEXO" or chave=="CATEGORIA"):
+            st.session_state[chaveSelect]=st.sidebar.radio(formataNome(chave),st.session_state[chave])
+        elif(chave=="HIERARQUIA_CTB"):
+            st.session_state[chaveSelect]=desconverteSing(st.sidebar.selectbox(formataNome(chave),st.session_state[chave]))
+        elif(chave=="ACTION"):
+            st.session_state[chaveSelect]=tradutorPtEn(st.sidebar.selectbox(formataNome(chave),traduzVetor(st.session_state[chave])))
+        elif(chave=="WEEKDAY"):
+            st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),transformaWeekday(st.session_state[chave]))
+        else:
+            st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),st.session_state[chave])
 
-# Painel lateral - cada linha corresponde a um filtro possível
-for chave in dicionario:
-    chaveSelect=chave+"SELECT"
-    if(chave=="SEXO" or chave=="CATEGORIA"):
-        st.session_state[chaveSelect]=st.sidebar.radio(formataNome(chave),st.session_state[chave])
-    elif(chave=="HIERARQUIA_CTB"):
-        st.session_state[chaveSelect]=desconverteSing(st.sidebar.selectbox(formataNome(chave),st.session_state[chave]))
-    elif(chave=="ACTION"):
-        st.session_state[chaveSelect]=tradutorPtEn(st.sidebar.selectbox(formataNome(chave),traduzVetor(st.session_state[chave])))
-    elif(chave=="WEEKDAY"):
-        st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),transformaWeekday(st.session_state[chave]))
-    else:
-        st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),st.session_state[chave])
+    # Atualização extra necessária para deixar os parâmetros do filtro de acordo
+    for chave in dicionario:
+        if(dicionario[chave]!=st.session_state[chave+"SELECT"]):
+            st.experimental_rerun()
 
-
-# Atualização extra necessária para deixar os parâmetros do filtro de acordo
-for chave in dicionario:
-    if(dicionario[chave]!=st.session_state[chave+"SELECT"]):
+    # Botão de atualização da página
+    if st.sidebar.button('Atualizar página'):
+        st.session_state.clear()
         st.experimental_rerun()
 
-# Botão de atualização da página
-if st.sidebar.button('Atualizar página'):
-    st.session_state.clear()
-    st.experimental_rerun()
+
+    # Título da página
+
+    titulo("Estudo Naturalístico de Direção Brasileiro - Indicadores sobre o uso do celular ao volante")
+
+    #---------------------------------------------
+    separaConteudo()
+    # Calculo e apresentação dos indicadores na box superior
+    tabelaFiltrada=atualizaTabela(dicionario,tabela)
+    tempoValidoTotal=calculaTempoValido(tabelaFiltrada)
+    velDuranteUso = calculaVelocidadeUsoCelular(tabelaFiltrada)
+    velSemUso=calculaVelocidadeSemUsoCelular(tabelaFiltrada)
+    freqUsoCelular=calculaFreqUsoCelular(tabelaFiltrada,tempoValidoTotal)
+    percentUso=calculaPercentualUsoCelular(tabelaFiltrada,tempoValidoTotal)
+
+    col1, col2, col3, col4= st.columns(4)
+    with col1:
+        st.metric("Velocidade média durante o uso (km/h)", velDuranteUso)
+    with col2:
+        st.metric("Velocidade média sem o uso (km/h)", velSemUso)
+    with col3:
+        st.metric("Frequência do uso do celular  (usos/h)", freqUsoCelular)
+    with col4:
+        st.metric(" Percentual do tempo de viagem usando o celular",
+                str(percentUso)+"%")
+                
+    #---------------------------------------------
+    separaConteudo()
+    # Gráfico de setores
+
+    tiposPossiveis = (pd.Series.unique(tabelaFiltrada["ACTION"])).astype(str).tolist()
+    slices = []
+    labels = []
+
+    for tipoUso in tiposPossiveis:
+        if (tipoUso != "nan"):
+            valor = tabelaFiltrada[tabelaFiltrada["ACTION"] == tipoUso]
+            valor = valor["ACTION"].count()
+            slices.append(valor)
+            labels.append(tradutorEnPt(tipoUso))
+    data = {"Tipo de uso": labels, "Quantidade de uso": slices}
+    st.subheader("Distribuição dos tipos de uso do celular (% do tempo)")
+    fig = px.pie(data, values='Quantidade de uso', names='Tipo de uso',height=300)
+    st.write(fig)
+
+    #---------------------------------------------
+    separaConteudo()
+    # Gráfico de barras - Cidades
+
+    cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str).tolist()
+    freqCidades = []
+    cidadesOfc = []
+
+    for cidade in cidades:
+        dfCidadeAtual = tabelaFiltrada[tabelaFiltrada["CIDADE"] == cidade]
+        qntPickUp = (dfCidadeAtual["PICK_UP"].astype(int)).sum(axis=0)
+
+        tempoAuxiliar = (dfCidadeAtual["VALID_TIME"].astype(int)).sum(axis=0)
+        if (qntPickUp > 0):
+            cidadesOfc.append(cidade)
+
+            freqCidades.append(qntPickUp/(tempoAuxiliar/3600))
+
+    data = {"CIDADE": cidadesOfc, "FREQUENCIA": freqCidades}
+    new_df = pd.DataFrame(data)
+    dfCidade = new_df.sort_values(["FREQUENCIA"])
+
+    st.subheader("Frequência de uso do celular por cidade (usos/h)")
+    bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
+        x='FREQUENCIA',
+        y=alt.Y("CIDADE",sort='-x') 
+    )
+    st.altair_chart(bars)
+
+    #---------------------------------------------
+    separaConteudo()
+    # Gráfico de barras - Bairros
 
 
-# Título da página
+    bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str).tolist()
+    freqBairros = []
+    bairrosOfc = []
+    for i in bairros:
+        dfBairroAtual = tabelaFiltrada[tabelaFiltrada["BAIRRO"] == i]
+        qntPickUp = (dfBairroAtual["PICK_UP"].astype(int)).sum(axis=0)
+        tempoAuxiliar = (dfBairroAtual["VALID_TIME"].astype(int)).sum(axis=0)
+        if (qntPickUp > 0):
+            bairrosOfc.append(i)
+            freqBairros.append(qntPickUp/(tempoAuxiliar/3600))
 
-titulo("Estudo Naturalístico de Direção Brasileiro - Indicadores sobre o uso do celular ao volante")
+    data = {"BAIRRO": bairrosOfc, "FREQUENCIA": freqBairros}
+    new_df = pd.DataFrame(data)
+    dfBairro = new_df.sort_values(["FREQUENCIA"])
 
-#---------------------------------------------
+    st.subheader("Frequência de uso do celular por bairro (usos/h)")
+    bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
+        x='FREQUENCIA',
+        y=alt.Y("BAIRRO",sort='-x') 
+    )
+    st.altair_chart(bars)
 
-# Calculo e apresentação dos indicadores na box superior
+    #---------------------------------------------
+    separaConteudo()
+    # Inserção do mapa
 
-tabelaFiltrada=atualizaTabela(dicionario,tabela)
+    coloreMapa("Percentual do uso de celular",tabelaFiltrada,my_map)
 
+    insereMapa("Percentual do uso de celular",my_map)
+    #---------------------------------------------
+    separaConteudo()
+    ## Rodapé da página
 
-tempoValidoTotal=calculaTempoValido(tabelaFiltrada)
-velDuranteUso = calculaVelocidadeUsoCelular(tabelaFiltrada)
-velSemUso=calculaVelocidadeSemUsoCelular(tabelaFiltrada)
-freqUsoCelular=calculaFreqUsoCelular(tabelaFiltrada,tempoValidoTotal)
-percentUso=calculaPercentualUsoCelular(tabelaFiltrada,tempoValidoTotal)
-
-
-col1, col2, col3, col4= st.columns(4)
-with col1:
-    st.metric("Velocidade média durante o uso (km/h)", velDuranteUso)
-with col2:
-    st.metric("Velocidade média sem o uso (km/h)", velSemUso)
-with col3:
-    st.metric("Frequência do uso do celular  (usos/h)", freqUsoCelular)
-with col4:
-    st.metric(" Percentual do tempo de viagem usando o celular",
-              str(percentUso)+"%")
-              
-
-#---------------------------------------------
-
-
-# Gráfico de setores
-
-tiposPossiveis = (pd.Series.unique(tabelaFiltrada["ACTION"])).astype(str).tolist()
-slices = []
-labels = []
-
-for tipoUso in tiposPossiveis:
-    if (tipoUso != "nan"):
-        valor = tabelaFiltrada[tabelaFiltrada["ACTION"] == tipoUso]
-        valor = valor["ACTION"].count()
-        slices.append(valor)
-        labels.append(tradutorEnPt(tipoUso))
-data = {"Tipo de uso": labels, "Quantidade de uso": slices}
-st.subheader("Distribuição dos tipos de uso do celular (% do tempo)")
-fig = px.pie(data, values='Quantidade de uso', names='Tipo de uso',height=300)
-st.write(fig)
-
-#---------------------------------------------
-
-# Gráfico de barras - Cidades
-
-cidades = ((pd.Series.unique(tabela["CIDADE"]))).astype(str).tolist()
-freqCidades = []
-cidadesOfc = []
-
-for cidade in cidades:
-    dfCidadeAtual = tabelaFiltrada[tabelaFiltrada["CIDADE"] == cidade]
-    qntPickUp = (dfCidadeAtual["PICK_UP"].astype(int)).sum(axis=0)
-
-    tempoAuxiliar = (dfCidadeAtual["VALID_TIME"].astype(int)).sum(axis=0)
-    if (qntPickUp > 0):
-        cidadesOfc.append(cidade)
-
-        freqCidades.append(qntPickUp/(tempoAuxiliar/3600))
-
-data = {"CIDADE": cidadesOfc, "FREQUENCIA": freqCidades}
-new_df = pd.DataFrame(data)
-dfCidade = new_df.sort_values(["FREQUENCIA"])
-
-st.subheader("Frequência de uso do celular por cidade (usos/h)")
-bars = alt.Chart(dfCidade).mark_bar(width=20).encode(
-    x='FREQUENCIA',
-    y=alt.Y("CIDADE",sort='-x') 
-)
-st.altair_chart(bars)
-
-#---------------------------------------------
-
-# Gráfico de barras - Bairros
+    rodape()
 
 
-bairros = ((pd.Series.unique(tabela["BAIRRO"]))).astype(str).tolist()
-freqBairros = []
-bairrosOfc = []
-for i in bairros:
-    dfBairroAtual = tabelaFiltrada[tabelaFiltrada["BAIRRO"] == i]
-    qntPickUp = (dfBairroAtual["PICK_UP"].astype(int)).sum(axis=0)
-    tempoAuxiliar = (dfBairroAtual["VALID_TIME"].astype(int)).sum(axis=0)
-    if (qntPickUp > 0):
-        bairrosOfc.append(i)
-        freqBairros.append(qntPickUp/(tempoAuxiliar/3600))
-
-data = {"BAIRRO": bairrosOfc, "FREQUENCIA": freqBairros}
-new_df = pd.DataFrame(data)
-dfBairro = new_df.sort_values(["FREQUENCIA"])
-
-st.subheader("Frequência de uso do celular por bairro (usos/h)")
-bars = alt.Chart(dfBairro).mark_bar(width=20).encode(
-    x='FREQUENCIA',
-    y=alt.Y("BAIRRO",sort='-x') 
-)
-st.altair_chart(bars)
-
-#---------------------------------------------
-
-# Inserção do mapa
-
-coloreMapa("Percentual do uso de celular",tabelaFiltrada,my_map)
-
-insereMapa("Percentual do uso de celular",my_map)
-
-## Rodapé da página
-
-rodape()
+if __name__ == "__main__":
+    main()
