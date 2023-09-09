@@ -73,7 +73,7 @@ def main():
 
     preencheVetorFiltro(dicionario,tabela)
 
-    # Painel lateral - cada linha corresponde a um filtro possível
+    # Painel lateral
     for chave in dicionario:
         chaveSelect=chave+"SELECT"
         if(chave=="HIERARQUIA_CTB"):
@@ -82,7 +82,7 @@ def main():
             st.session_state[chaveSelect]=st.sidebar.selectbox(formataNome(chave),st.session_state[chave])
 
 
-    # Atualização extra necessária para deixar os parâmetros do filtro de acordo
+    # Atualização extra, necessária para deixar os parâmetros do filtro de acordo
     for chave in dicionario:
         if(dicionario[chave]!=st.session_state[chave+"SELECT"]):
             st.experimental_rerun()
@@ -128,9 +128,13 @@ def main():
     separaConteudo()
     # Coloração e inserção do mapa inferior assim como as opções de visualização disponível
     
-    options=["Frequência de uso do celular (usos/hora)","Percentual do tempo de não uso do cinto de segurança","Percentual do tempo sob excesso de velocidade*"]
+    options=["Frequência de uso do celular (usos/hora)",
+             "Percentual do tempo de não uso do cinto de segurança",
+             "Percentual do tempo sob excesso de velocidade*"]
 
-    st.session_state["ESCOLHA"] = st.selectbox("Selecione o parâmetro para ser preenchido o mapa:",options, index=options.index(st.session_state["ESCOLHA"]))
+    st.session_state["ESCOLHA"] = st.selectbox("Selecione o parâmetro para ser preenchido o mapa:",
+                                               options, 
+                                               index=options.index(st.session_state["ESCOLHA"]))
 
     coloreMapa(st.session_state["ESCOLHA"],tabelaFiltrada,my_map)
     insereMapa(st.session_state["ESCOLHA"],my_map)
