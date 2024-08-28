@@ -90,12 +90,12 @@ def main():
     # Atualização extra necessária para deixar os parâmetros do filtro de acordo
     for chave in dicionario:
         if(dicionario[chave]!=st.session_state[chave+"SELECT"]):
-            st.experimental_rerun()
+            st.rerun()
 
     # Botão de atualização da página
     if st.sidebar.button('Atualizar página'):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
     ## Título da página
     titulo("Estudo Naturalístico de Direção Brasileiro - Indicadores sobre excesso de velocidade")
